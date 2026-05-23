@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <linearGradient id="ntGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E70077"/>
+      <stop offset="100%" stop-color="#E70146"/>
+    </linearGradient>
+    <linearGradient id="ntGradSoft" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E70077" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#E70146" stop-opacity="0.05"/>
+    </linearGradient>
+    <filter id="ntGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <!-- Outer ring -->
+  <circle cx="256" cy="256" r="240" fill="url(#ntGradSoft)" stroke="url(#ntGrad)" stroke-width="10"/>
+  <!-- Inner ring -->
+  <circle cx="256" cy="256" r="206" fill="none" stroke="url(#ntGrad)" stroke-width="2" stroke-opacity="0.55"/>
+  <!-- Tick marks -->
+  <g stroke="url(#ntGrad)" stroke-width="3" stroke-linecap="round">
+    <line x1="256" y1="32" x2="256" y2="58"/>
+    <line x1="256" y1="454" x2="256" y2="480"/>
+    <line x1="32" y1="256" x2="58" y2="256"/>
+    <line x1="454" y1="256" x2="480" y2="256"/>
+  </g>
+  <!-- Stylised A mark -->
+  <g filter="url(#ntGlow)">
+    <path d="M256 110 L370 388 L312 388 L292 336 L220 336 L200 388 L142 388 Z M236 286 L276 286 L256 232 Z"
+      fill="url(#ntGrad)"/>
+    <!-- Cross bar bottom of A extended like a katana hilt -->
+    <rect x="166" y="376" width="180" height="8" rx="4" fill="url(#ntGrad)"/>
+    <rect x="146" y="384" width="220" height="3" rx="1.5" fill="url(#ntGrad)" opacity="0.6"/>
+  </g>
+</svg>

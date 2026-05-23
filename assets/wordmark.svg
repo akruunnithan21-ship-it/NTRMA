@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 160" fill="none">
+  <defs>
+    <linearGradient id="wmGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#E70077"/>
+      <stop offset="100%" stop-color="#E70146"/>
+    </linearGradient>
+  </defs>
+  <text x="0" y="78" font-family="Rajdhani, 'TRT Fluke Demo', system-ui, sans-serif"
+        font-size="84" font-weight="700" letter-spacing="6" fill="url(#wmGrad)">NEO TOKYO</text>
+  <text x="2" y="128" font-family="Rajdhani, 'TRT Fluke Demo', system-ui, sans-serif"
+        font-size="24" font-weight="500" letter-spacing="14" fill="#E70146" opacity="0.85">SERVICE / RMA</text>
+  <line x1="0" y1="100" x2="780" y2="100" stroke="url(#wmGrad)" stroke-width="1.5" opacity="0.4"/>
+</svg>
