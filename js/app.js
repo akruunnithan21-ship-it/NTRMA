@@ -122,7 +122,7 @@ window.NTApp = (function () {
 
   function renderServicePlaceholder(root) {
     const card = el('div', { class: 'placeholder fade-up' });
-    card.appendChild(el('img', { src: 'assets/logo.svg', style: 'width:90px; height:90px; filter:drop-shadow(0 0 20px rgba(231,1,70,0.6));' }));
+    card.appendChild(el('img', { src: 'assets/neo_tokyo-logo.png', style: 'width:90px; height:90px; filter:drop-shadow(0 0 20px rgba(231,1,70,0.6));' }));
     card.appendChild(el('h2', {}, 'SERVICE'));
     card.appendChild(el('p', {}, 'In-shop diagnostics, repairs and service ticketing for Neo Tokyo customers. Coming online in a future build.'));
     card.appendChild(el('div', { class: 'ph-tag' }, 'PLACEHOLDER · COMING SOON'));
@@ -136,7 +136,7 @@ window.NTApp = (function () {
 
   function renderWarrantyPlaceholder(root) {
     const card = el('div', { class: 'placeholder fade-up' });
-    card.appendChild(el('img', { src: 'assets/logo.svg', style: 'width:90px; height:90px; filter:drop-shadow(0 0 20px rgba(231,1,70,0.6));' }));
+    card.appendChild(el('img', { src: 'assets/neo_tokyo-logo.png', style: 'width:90px; height:90px; filter:drop-shadow(0 0 20px rgba(231,1,70,0.6));' }));
     card.appendChild(el('h2', {}, 'WARRANTY CHECK'));
     card.appendChild(el('p', {}, 'Look up active warranties by serial number across vendors. Customer-facing in a future build.'));
     card.appendChild(el('div', { class: 'ph-tag' }, 'PLACEHOLDER · COMING SOON'));

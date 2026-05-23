@@ -1,5 +1,5 @@
 /* Service Worker — cache-first for the app shell, network for everything else */
-const CACHE = 'ntrma-v1';
+const CACHE = 'ntrma-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -12,10 +12,15 @@ const ASSETS = [
   './js/rack.js',
   './js/settings.js',
   './js/excel.js',
-  './assets/logo.svg',
-  './assets/wordmark.svg',
-  './assets/icon-192.svg',
-  './assets/icon-512.svg'
+  './assets/neo_tokyo-logo.png',
+  './assets/icon-192.png',
+  './assets/icon-512.png',
+  './assets/icon-maskable-192.png',
+  './assets/icon-maskable-512.png',
+  './assets/apple-touch-icon.png',
+  './assets/favicon-32.png',
+  './assets/favicon-16.png',
+  './assets/wordmark.svg'
 ];
 
 self.addEventListener('install', (e) => {
