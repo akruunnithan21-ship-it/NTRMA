@@ -1,7 +1,8 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import Layout from './components/layout/Layout'
 import Toast from './components/ui/Toast'
+import Splash from './components/ui/Splash'
 import Dashboard from './pages/Dashboard'
 import RmaList from './pages/RmaList'
 import RmaNew from './pages/RmaNew'
@@ -14,11 +15,13 @@ import useThemeStore from './store/useThemeStore'
 
 export default function App() {
   const initTheme = useThemeStore(s => s.initTheme)
+  const [showSplash, setShowSplash] = useState(true)
 
   useEffect(() => { initTheme() }, [])
 
   return (
     <>
+      {showSplash && <Splash onFinish={() => setShowSplash(false)} />}
       <Layout>
         <Routes>
           <Route path="/" element={<Dashboard />} />
