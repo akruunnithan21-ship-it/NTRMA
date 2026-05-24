@@ -89,7 +89,7 @@ export default function Settings() {
               {dark ? <Moon size={14} /> : <Sun size={14} />}
             </span>
             <div>
-              <span className="text-[12px] tracking-[2px] font-semibold text-text-primary dark:text-white">APPEARANCE</span>
+              <span className="text-[12px] tracking-[2px] font-semibold text-[#1D1D1F]">APPEARANCE</span>
               <p className="text-[10px] text-text-muted mt-0.5">{dark ? 'Dark mode' : 'Light mode'}</p>
             </div>
           </div>
