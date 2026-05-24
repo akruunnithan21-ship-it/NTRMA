@@ -144,15 +144,15 @@ export default function RmaDetail() {
 
   async function handleMoveToRack() {
     try {
-      await saveRackItem({
-        id: newId(),
+      const rackItem = {
         description: `${form.component_type || ''} ${form.vendor || ''} ${form.component_description || ''}`.trim(),
         serial: form.serial_out || form.serial_in || '',
         state: 'AT_RACK',
         location: form.rack_location || 'Rack A',
-        linked_rma: form.rma_number,
+        linked_rma: form.rma_number || '',
         source: 'rma',
-      })
+      }
+      await db.saveRackItem(rackItem)
       vibrate('success')
       showToast('Sent to rack', 'success')
       navigate('/rack')

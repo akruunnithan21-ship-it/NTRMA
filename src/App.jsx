@@ -12,6 +12,7 @@ import Rack from './pages/Rack'
 import Service from './pages/Service'
 import Warranty from './pages/Warranty'
 import Settings from './pages/Settings'
+import Account from './pages/Account'
 import useThemeStore from './store/useThemeStore'
 import useAuthStore from './store/useAuthStore'
 
@@ -39,6 +40,7 @@ export default function App() {
           <Route path="/service" element={<Service />} />
           <Route path="/warranty" element={<Warranty />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/account" element={<Account />} />
         </Routes>
       </Layout>
       <Toast />
