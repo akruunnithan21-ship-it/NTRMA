@@ -213,6 +213,25 @@ html.dark .glass-card:hover {
 .stagger > *:nth-child(8) { animation-delay: 420ms; }
 
 /* Dark mode text overrides */
-html.dark .text-text-primary { color: #f0f0f4; }
-html.dark .text-text-secondary { color: #a0a0b0; }
-html.dark .text-text-muted { color: #707080; }
+html.dark .text-text-primary { color: #f0f0f4 !important; }
+html.dark .text-text-secondary { color: #b0b0c0 !important; }
+html.dark .text-text-muted { color: #808090 !important; }
+
+/* Light mode — ensure all text is dark and readable */
+html:not(.dark) .text-text-primary { color: #1D1D1F !important; }
+html:not(.dark) .text-text-secondary { color: #4B5563 !important; }
+html:not(.dark) .text-text-muted { color: #6B7280 !important; }
+
+/* Dark mode form fields */
+html.dark input, html.dark textarea, html.dark select,
+html.dark button {
+  color: #f0f0f4;
+}
+html.dark input::placeholder, html.dark textarea::placeholder {
+  color: #606070;
+}
+
+/* Dark mode labels */
+html.dark label {
+  color: #b0b0c0 !important;
+}
