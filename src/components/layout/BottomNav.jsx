@@ -1,9 +1,10 @@
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Home, RotateCcw, Box, Settings } from 'lucide-react'
+import useTicketStore from '../../store/useTicketStore'
 
 const navItems = [
   { path: '/', label: 'Home', icon: Home },
-  { path: '/rma', label: 'RMA', icon: RotateCcw },
+  { path: '/rma', label: 'RMA', icon: RotateCcw, showBadge: true },
   { path: '/rack', label: 'Rack', icon: Box },
   { path: '/settings', label: 'Settings', icon: Settings },
 ]
@@ -11,6 +12,9 @@ const navItems = [
 export default function BottomNav() {
   const location = useLocation()
   const navigate = useNavigate()
+  const { tickets } = useTicketStore()
+
+  const openCount = tickets.filter(t => ['Pending', 'Open'].includes(t.status)).length
 
   function isActive(path) {
     if (path === '/') return location.pathname === '/'
@@ -28,16 +32,22 @@ export default function BottomNav() {
               key={item.path}
               onClick={() => navigate(item.path)}
               className={`
-                flex flex-col items-center gap-1 px-4 py-2 rounded-2xl transition-all duration-300
+                relative flex flex-col items-center gap-1 px-4 py-2 rounded-2xl transition-all duration-300
                 ${active 
-                  ? 'bg-pink-50 text-pink-500 shadow-[0_4px_16px_rgba(255,79,139,0.15)]' 
+                  ? 'bg-pink-50 text-pink-500 shadow-[0_4px_16px_rgba(255,79,139,0.15)] dark:bg-pink-900/30 dark:text-pink-300' 
                   : 'text-text-muted hover:text-text-secondary'}
               `}
             >
               <Icon size={20} strokeWidth={active ? 2.2 : 1.8} />
-              <span className={`text-[10px] tracking-wider font-medium ${active ? 'text-pink-500' : ''}`}>
+              <span className={`text-[10px] tracking-wider font-medium ${active ? 'text-pink-500 dark:text-pink-300' : ''}`}>
                 {item.label}
               </span>
+              {/* Badge */}
+              {item.showBadge && openCount > 0 && (
+                <span className="absolute -top-0.5 right-2 min-w-[16px] h-4 px-1 flex items-center justify-center rounded-full bg-pink-500 text-white text-[9px] font-bold shadow-[0_2px_8px_rgba(231,1,70,0.4)]">
+                  {openCount > 99 ? '99+' : openCount}
+                </span>
+              )}
             </button>
           )
         })}

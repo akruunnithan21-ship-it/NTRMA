@@ -54,12 +54,22 @@ CREATE TABLE IF NOT EXISTS settings (
   value JSONB
 );
 
+-- STATUS HISTORY TABLE
+CREATE TABLE IF NOT EXISTS status_history (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  ticket_id UUID REFERENCES tickets(id) ON DELETE CASCADE,
+  from_status TEXT,
+  to_status TEXT NOT NULL,
+  changed_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- INDEXES
 CREATE INDEX IF NOT EXISTS idx_tickets_status ON tickets(status);
 CREATE INDEX IF NOT EXISTS idx_tickets_created ON tickets(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_tickets_rma ON tickets(rma_number);
 CREATE INDEX IF NOT EXISTS idx_rack_state ON rack_items(state);
 CREATE INDEX IF NOT EXISTS idx_photos_ticket ON ticket_photos(ticket_id);
+CREATE INDEX IF NOT EXISTS idx_status_history_ticket ON status_history(ticket_id);
 
 -- STORAGE BUCKET (run separately if needed)
 -- INSERT INTO storage.buckets (id, name, public) VALUES ('ticket-photos', 'ticket-photos', true);
@@ -69,9 +79,11 @@ ALTER TABLE tickets ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ticket_photos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE rack_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE status_history ENABLE ROW LEVEL SECURITY;
 
 -- Allow public access (since no auth is set up yet)
 CREATE POLICY "Allow all on tickets" ON tickets FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Allow all on ticket_photos" ON ticket_photos FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Allow all on rack_items" ON rack_items FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Allow all on settings" ON settings FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow all on status_history" ON status_history FOR ALL USING (true) WITH CHECK (true);

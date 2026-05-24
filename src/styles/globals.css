@@ -68,6 +68,27 @@ body {
   color: var(--color-text-primary);
   background: var(--color-bg-base);
   position: relative;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Dark mode */
+.dark body,
+:root.dark body {
+  background: #0a0a0f;
+  color: #e4e4e7;
+}
+
+.dark body::before {
+  background:
+    radial-gradient(ellipse 800px 600px at 15% 10%, rgba(231,1,70,0.08), transparent 60%),
+    radial-gradient(ellipse 700px 500px at 85% 20%, rgba(77,197,255,0.06), transparent 60%),
+    radial-gradient(ellipse 600px 500px at 50% 90%, rgba(231,1,70,0.05), transparent 50%);
+}
+
+.dark body::after {
+  background-image:
+    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
 }
 
 /* Background layers — gradient blobs + grid */
@@ -124,6 +145,12 @@ body::after {
   transition: all 0.3s ease;
 }
 
+.dark .glass-card {
+  background: rgba(20, 20, 30, 0.6);
+  border-color: rgba(255,255,255,0.06);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
 .glass-card:hover {
   box-shadow: var(--shadow-card-hover);
   transform: translateY(-2px);
@@ -136,6 +163,12 @@ body::after {
   backdrop-filter: blur(var(--blur-card));
   -webkit-backdrop-filter: blur(var(--blur-card));
   box-shadow: var(--shadow-card);
+}
+
+.dark .glass-card-static {
+  background: rgba(20, 20, 30, 0.6);
+  border-color: rgba(255,255,255,0.06);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
 }
 
 /* Animations */

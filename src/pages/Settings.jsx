@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ChevronDown, ChevronUp, Plus, X, Download, Upload, Trash2, Info } from 'lucide-react'
+import { ChevronDown, ChevronUp, Plus, X, Download, Upload, Trash2, Info, Moon, Sun } from 'lucide-react'
 import GlassCard from '../components/ui/GlassCard'
 import Input from '../components/ui/Input'
 import Button from '../components/ui/Button'
@@ -8,11 +8,14 @@ import { showToast } from '../components/ui/Toast'
 import useSettingsStore from '../store/useSettingsStore'
 import useTicketStore from '../store/useTicketStore'
 import useRackStore from '../store/useRackStore'
+import useThemeStore from '../store/useThemeStore'
+import { vibrate } from '../lib/haptics'
 
 export default function Settings() {
   const { settings, fetchSettings, addItem, removeItem } = useSettingsStore()
   const { tickets, fetchTickets } = useTicketStore()
   const { items: rackItems, fetchItems } = useRackStore()
+  const { dark, toggleDark } = useThemeStore()
   const [showWipe, setShowWipe] = useState(false)
   const [expandedSections, setExpandedSections] = useState({})
 
@@ -78,6 +81,27 @@ export default function Settings() {
 
   return (
     <div className="space-y-4 pt-4 stagger">
+      {/* Dark mode toggle */}
+      <GlassCard className="p-5 animate-fade-up">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="w-8 h-8 rounded-xl bg-pink-50 dark:bg-pink-900/30 border border-pink-200 dark:border-pink-700 flex items-center justify-center text-pink-500 dark:text-pink-300 text-sm">
+              {dark ? <Moon size={14} /> : <Sun size={14} />}
+            </span>
+            <div>
+              <span className="text-[12px] tracking-[2px] font-semibold text-text-primary dark:text-white">APPEARANCE</span>
+              <p className="text-[10px] text-text-muted mt-0.5">{dark ? 'Dark mode' : 'Light mode'}</p>
+            </div>
+          </div>
+          <button
+            onClick={() => { toggleDark(); vibrate('light') }}
+            className={`relative w-12 h-7 rounded-full transition-colors duration-300 ${dark ? 'bg-pink-500' : 'bg-gray-200 dark:bg-gray-700'}`}
+          >
+            <span className={`absolute top-1 w-5 h-5 rounded-full bg-white shadow-md transition-transform duration-300 ${dark ? 'translate-x-6' : 'translate-x-1'}`} />
+          </button>
+        </div>
+      </GlassCard>
+
       {/* List cards */}
       {listCards.map(card => (
         <SettingListCard

@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import Layout from './components/layout/Layout'
 import Toast from './components/ui/Toast'
@@ -9,8 +10,13 @@ import Rack from './pages/Rack'
 import Service from './pages/Service'
 import Warranty from './pages/Warranty'
 import Settings from './pages/Settings'
+import useThemeStore from './store/useThemeStore'
 
 export default function App() {
+  const initTheme = useThemeStore(s => s.initTheme)
+
+  useEffect(() => { initTheme() }, [])
+
   return (
     <>
       <Layout>

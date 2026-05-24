@@ -130,6 +130,49 @@ export async function deleteRackItem(id) {
 }
 
 // ============================
+// STATUS HISTORY
+// ============================
+export async function getStatusHistory(ticketId) {
+  const { data, error } = await supabase
+    .from('status_history')
+    .select('*')
+    .eq('ticket_id', ticketId)
+    .order('changed_at', { ascending: true })
+  if (error) throw error
+  return data || []
+}
+
+export async function addStatusChange(ticketId, fromStatus, toStatus) {
+  const { data, error } = await supabase
+    .from('status_history')
+    .insert({
+      id: crypto.randomUUID(),
+      ticket_id: ticketId,
+      from_status: fromStatus,
+      to_status: toStatus,
+      changed_at: new Date().toISOString(),
+    })
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+// ============================
+// CUSTOMER NAMES (for autocomplete)
+// ============================
+export async function getUniqueCustomerNames() {
+  const { data, error } = await supabase
+    .from('tickets')
+    .select('customer_name')
+    .not('customer_name', 'is', null)
+    .order('customer_name')
+  if (error) throw error
+  const names = [...new Set((data || []).map(t => t.customer_name).filter(Boolean))]
+  return names
+}
+
+// ============================
 // SETTINGS
 // ============================
 export async function getSettings() {

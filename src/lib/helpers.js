@@ -48,22 +48,6 @@ export function formatDateTime(d) {
 }
 
 /**
- * Generate next RMA number based on existing tickets
- */
-export function generateRmaNumber(tickets = []) {
-  const yr = new Date().getFullYear().toString().slice(-2)
-  const prefix = `NT${yr}-`
-  let max = 0
-  tickets.forEach(t => {
-    if (t.rma_number && t.rma_number.startsWith(prefix)) {
-      const n = parseInt(t.rma_number.slice(prefix.length), 10)
-      if (!isNaN(n) && n > max) max = n
-    }
-  })
-  return prefix + String(max + 1).padStart(4, '0')
-}
-
-/**
  * Truncate text with ellipsis
  */
 export function truncate(str, len = 40) {
