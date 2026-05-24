@@ -24,7 +24,7 @@ const TextArea = forwardRef(({
           focus:outline-none focus:bg-white/60
           ${error 
             ? 'border-pink-300 focus:border-pink-400 focus:shadow-[0_0_0_3px_rgba(231,1,70,0.08)]' 
-            : 'border-white/60 focus:border-pink-200 focus:shadow-[0_0_0_3px_rgba(231,1,70,0.06)]'}
+            : 'border-black/10 focus:border-pink-300 focus:shadow-[0_0_0_3px_rgba(231,1,70,0.06)]'}
         `}
         {...props}
       />

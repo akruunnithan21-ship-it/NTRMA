@@ -87,3 +87,21 @@ CREATE POLICY "Allow all on ticket_photos" ON ticket_photos FOR ALL USING (true)
 CREATE POLICY "Allow all on rack_items" ON rack_items FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Allow all on settings" ON settings FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Allow all on status_history" ON status_history FOR ALL USING (true) WITH CHECK (true);
+
+
+
+-- =========================================================
+-- USER ROLES TABLE (for authentication)
+-- =========================================================
+CREATE TABLE IF NOT EXISTS user_roles (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL,
+  role TEXT NOT NULL DEFAULT 'viewer',
+  display_name TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_roles_user ON user_roles(user_id);
+
+ALTER TABLE user_roles ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow all on user_roles" ON user_roles FOR ALL USING (true) WITH CHECK (true);

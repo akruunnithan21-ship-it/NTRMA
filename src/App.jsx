@@ -3,6 +3,7 @@ import { Routes, Route } from 'react-router-dom'
 import Layout from './components/layout/Layout'
 import Toast from './components/ui/Toast'
 import Splash from './components/ui/Splash'
+import LoginGate from './components/ui/LoginGate'
 import Dashboard from './pages/Dashboard'
 import RmaList from './pages/RmaList'
 import RmaNew from './pages/RmaNew'
@@ -12,12 +13,18 @@ import Service from './pages/Service'
 import Warranty from './pages/Warranty'
 import Settings from './pages/Settings'
 import useThemeStore from './store/useThemeStore'
+import useAuthStore from './store/useAuthStore'
+
+function RmaGuard({ children }) {
+  return <LoginGate>{children}</LoginGate>
+}
 
 export default function App() {
   const initTheme = useThemeStore(s => s.initTheme)
+  const initAuth = useAuthStore(s => s.init)
   const [showSplash, setShowSplash] = useState(true)
 
-  useEffect(() => { initTheme() }, [])
+  useEffect(() => { initTheme(); initAuth() }, [])
 
   return (
     <>
@@ -25,9 +32,9 @@ export default function App() {
       <Layout>
         <Routes>
           <Route path="/" element={<Dashboard />} />
-          <Route path="/rma" element={<RmaList />} />
-          <Route path="/rma/new" element={<RmaNew />} />
-          <Route path="/rma/:id" element={<RmaDetail />} />
+          <Route path="/rma" element={<RmaGuard><RmaList /></RmaGuard>} />
+          <Route path="/rma/new" element={<RmaGuard><RmaNew /></RmaGuard>} />
+          <Route path="/rma/:id" element={<RmaGuard><RmaDetail /></RmaGuard>} />
           <Route path="/rack" element={<Rack />} />
           <Route path="/service" element={<Service />} />
           <Route path="/warranty" element={<Warranty />} />

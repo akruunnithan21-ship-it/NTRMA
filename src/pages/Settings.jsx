@@ -95,9 +95,9 @@ export default function Settings() {
           </div>
           <button
             onClick={() => { toggleDark(); vibrate('light') }}
-            className={`relative w-12 h-7 rounded-full transition-colors duration-300 ${dark ? 'bg-pink-500' : 'bg-gray-200 dark:bg-gray-700'}`}
+            className={`relative w-14 h-7 rounded-full transition-colors duration-300 flex-shrink-0 ${dark ? 'bg-pink-500' : 'bg-gray-300'}`}
           >
-            <span className={`absolute top-1 w-5 h-5 rounded-full bg-white shadow-md transition-transform duration-300 ${dark ? 'translate-x-6' : 'translate-x-1'}`} />
+            <span className={`absolute top-0.5 w-6 h-6 rounded-full bg-white shadow-md transition-transform duration-300 ${dark ? 'left-7' : 'left-0.5'}`} />
           </button>
         </div>
       </GlassCard>

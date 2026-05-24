@@ -42,7 +42,7 @@ export default function Select({
           onClick={() => setOpen(!open)}
           className={`
             w-full flex items-center justify-between px-4 py-3 rounded-2xl
-            bg-white/40 border border-white/60 transition-all duration-200
+            bg-white/40 border border-black/10 transition-all duration-200
             text-sm text-left backdrop-blur-sm
             hover:bg-white/50
             ${open ? 'border-pink-200 shadow-[0_0_0_3px_rgba(231,1,70,0.06)] bg-white/60' : ''}

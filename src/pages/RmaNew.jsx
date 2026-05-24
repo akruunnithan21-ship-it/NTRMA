@@ -109,7 +109,7 @@ export default function RmaNew() {
       <GlassCard className="p-5 animate-fade-up">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-base font-bold tracking-wider text-text-primary dark:text-white">NEW ENTRY</h2>
+            <h2 className="text-base font-bold tracking-wider text-pink-500 font-[family-name:var(--font-heading)]">NEW ENTRY</h2>
             <span className="text-[11px] text-text-muted mt-1 block">
               Fill in ticket details below
             </span>
