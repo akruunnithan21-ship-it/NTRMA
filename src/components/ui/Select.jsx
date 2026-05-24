@@ -30,7 +30,7 @@ export default function Select({
     : placeholder
 
   return (
-    <div className={`flex flex-col gap-1.5 ${className}`} ref={ref}>
+    <div className={`flex flex-col gap-1.5 relative ${open ? 'z-[100]' : 'z-10'} ${className}`} ref={ref}>
       {label && (
         <label className="text-[11px] tracking-[2px] font-medium text-text-secondary uppercase">
           {label}
@@ -57,9 +57,9 @@ export default function Select({
         </button>
 
         {open && (
-          <div className="absolute top-full left-0 right-0 mt-2 z-50 
-            bg-white/90 backdrop-blur-xl border border-white/80 
-            rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.1)] 
+          <div className="absolute top-full left-0 right-0 mt-2 z-[200] 
+            bg-white/95 backdrop-blur-xl border border-black/10 
+            rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.15)] 
             max-h-60 overflow-y-auto animate-fade-up">
             <div className="p-2 space-y-0.5">
               {placeholder && (

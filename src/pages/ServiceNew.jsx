@@ -156,9 +156,21 @@ export default function ServiceNew() {
             <h2 className="text-base font-bold tracking-wider text-pink-500 font-[family-name:var(--font-heading)]">NEW SERVICE TICKET</h2>
             <span className="text-[11px] text-text-muted mt-1 block">Fill in service details below</span>
           </div>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-[10px] tracking-wider text-emerald-600 font-medium">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-            OPEN
+          <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] tracking-wider font-medium border ${
+            form.call_status === 'Closed' ? 'bg-emerald-50 border-emerald-200 text-emerald-600' :
+            form.call_status === 'Open' ? 'bg-amber-50 border-amber-200 text-amber-600' :
+            form.call_status === 'Pending for Spare' || form.call_status === 'Pending for RMA' ? 'bg-orange-50 border-orange-200 text-orange-600' :
+            form.call_status === 'Customer Dependency' ? 'bg-violet-50 border-violet-200 text-violet-600' :
+            'bg-gray-50 border-gray-200 text-gray-600'
+          }`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${
+              form.call_status === 'Closed' ? 'bg-emerald-400' :
+              form.call_status === 'Open' ? 'bg-amber-400' :
+              form.call_status === 'Pending for Spare' || form.call_status === 'Pending for RMA' ? 'bg-orange-400' :
+              form.call_status === 'Customer Dependency' ? 'bg-violet-400' :
+              'bg-gray-400'
+            }`} />
+            {form.call_status === 'Others' && customStatus ? customStatus.toUpperCase() : form.call_status.toUpperCase()}
           </span>
         </div>
       </GlassCard>
