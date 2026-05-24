@@ -1,0 +1,8 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "app.netlify.neorma.twa",
+    "sha256_cert_fingerprints": ["AE:00:6D:EB:D5:6A:F0:0B:7F:BD:0C:F0:40:44:3B:84:89:3C:03:87:5A:CB:E9:95:14:A7:5D:43:A1:7D:57:11"]
+  }
+}]
