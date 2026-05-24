@@ -1,16 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <defs>
-    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#E70146"/>
-      <stop offset="100%" stop-color="#C40039"/>
-    </linearGradient>
-  </defs>
-  <!-- Background -->
-  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
-  <!-- Outer circle ring -->
-  <circle cx="256" cy="256" r="180" fill="none" stroke="white" stroke-width="24"/>
-  <!-- Triangle/Arrow pointing up -->
-  <polygon points="256,120 370,340 142,340" fill="none" stroke="white" stroke-width="20" stroke-linejoin="round"/>
-  <!-- Small inner triangle (bottom, filled) -->
-  <polygon points="256,280 300,340 212,340" fill="#E70146"/>
+  <!-- Red background -->
+  <rect width="512" height="512" rx="96" fill="#D6002A"/>
+  <!-- White circle (thick, solid) -->
+  <circle cx="256" cy="256" r="155" fill="none" stroke="white" stroke-width="40"/>
+  <!-- White triangle (solid filled, pointing up) -->
+  <path d="M256 105 L380 365 L132 365 Z" fill="white"/>
+  <!-- Red triangle cutout at bottom (creates the inner gap/arrow shape) -->
+  <path d="M256 240 L320 365 L192 365 Z" fill="#D6002A"/>
 </svg>
