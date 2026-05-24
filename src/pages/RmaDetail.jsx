@@ -87,6 +87,17 @@ export default function RmaDetail() {
     setSaving(true)
     try {
       await saveTicket(form)
+      // If rack_location is set, automatically add/update in rack inventory
+      if (form.rack_location) {
+        await db.saveRackItem({
+          description: `${form.component_type || ''} ${form.vendor || ''} ${form.component_description || ''}`.trim(),
+          serial: form.serial_out || form.serial_in || '',
+          state: 'AT_RACK',
+          location: form.rack_location,
+          linked_rma: form.rma_number || '',
+          source: 'rma',
+        })
+      }
       vibrate('success')
       showToast('Ticket updated', 'success')
     } catch (err) {
