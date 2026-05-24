@@ -14,12 +14,12 @@ export default function TopBar({ title, subtitle, onMenuClick }) {
 
         <div className="flex items-center gap-3 flex-1 min-w-0">
           <img
-            src="/assets/logo.svg"
+            src="/assets/app-icon.svg"
             alt="Neo Tokyo"
-            className="w-8 h-8 drop-shadow-[0_0_8px_rgba(231,1,70,0.4)]"
+            className="w-8 h-8 rounded-lg"
           />
           <div className="min-w-0">
-            <h1 className="text-sm font-semibold tracking-wider text-text-primary truncate">
+            <h1 className="text-sm font-bold tracking-wider text-text-primary truncate font-[family-name:var(--font-heading)]">
               {title || 'NEO TOKYO'}
             </h1>
             {subtitle && (

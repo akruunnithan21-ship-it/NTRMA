@@ -2,13 +2,32 @@
 
 /* =========================================================
    NEO TOKYO — Soft Futuristic Glassmorphism Design System
-   Akihabara / cyber-anime / premium tech aesthetic
    ========================================================= */
+
+/* TRT Fluke Demo — headings/titles font */
+@font-face {
+  font-family: 'TRT Fluke Demo';
+  src: url('/fonts/TRTFlukeDemo-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'TRT Fluke Demo';
+  src: url('/fonts/TRTFlukeDemo-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'TRT Fluke Demo';
+  src: url('/fonts/TRTFlukeDemo-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-display: swap;
+}
 
 @theme {
   --color-bg-base: #FAF7F9;
   --color-bg-soft: #FFFDFE;
-  --color-bg-card: rgba(255, 255, 255, 0.65);
+  --color-bg-card: rgba(255, 255, 255, 0.72);
   --color-bg-card-solid: #FFFFFF;
 
   --color-pink-500: #E70146;
@@ -25,14 +44,14 @@
   --color-ice-100: #F0FAFF;
 
   --color-text-primary: #1D1D1F;
-  --color-text-secondary: #6B7280;
-  --color-text-muted: #9CA3AF;
+  --color-text-secondary: #4B5563;
+  --color-text-muted: #6B7280;
 
-  --color-border: rgba(255, 255, 255, 0.8);
-  --color-border-subtle: rgba(0, 0, 0, 0.04);
+  --color-border: rgba(255, 255, 255, 0.9);
+  --color-border-subtle: rgba(0, 0, 0, 0.06);
 
-  --shadow-card: 0 10px 30px rgba(255, 120, 180, 0.08);
-  --shadow-card-hover: 0 16px 40px rgba(255, 120, 180, 0.14);
+  --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(255, 255, 255, 0.8) inset;
+  --shadow-card-hover: 0 16px 48px rgba(0, 0, 0, 0.10), 0 0 0 1px rgba(255, 255, 255, 0.9) inset;
   --shadow-glow: 0 0 40px rgba(255, 120, 180, 0.12);
 
   --radius-card: 28px;
@@ -41,10 +60,11 @@
   --radius-sm: 12px;
   --radius-pill: 999px;
 
-  --blur-card: 12px;
-  --blur-strong: 20px;
+  --blur-card: 16px;
+  --blur-strong: 24px;
 
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-heading: 'TRT Fluke Demo', 'Inter', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 }
 
@@ -71,24 +91,10 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Dark mode */
-.dark body,
-:root.dark body {
-  background: #0a0a0f;
-  color: #e4e4e7;
-}
-
-.dark body::before {
-  background:
-    radial-gradient(ellipse 800px 600px at 15% 10%, rgba(231,1,70,0.08), transparent 60%),
-    radial-gradient(ellipse 700px 500px at 85% 20%, rgba(77,197,255,0.06), transparent 60%),
-    radial-gradient(ellipse 600px 500px at 50% 90%, rgba(231,1,70,0.05), transparent 50%);
-}
-
-.dark body::after {
-  background-image:
-    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+/* Dark mode body */
+html.dark body {
+  background: #0a0a12;
+  color: #f0f0f4;
 }
 
 /* Background layers — gradient blobs + grid */
@@ -104,13 +110,20 @@ body::before {
   pointer-events: none;
 }
 
+html.dark body::before {
+  background:
+    radial-gradient(ellipse 800px 600px at 15% 10%, rgba(231,1,70,0.06), transparent 60%),
+    radial-gradient(ellipse 700px 500px at 85% 20%, rgba(77,197,255,0.04), transparent 60%),
+    radial-gradient(ellipse 600px 500px at 50% 90%, rgba(231,1,70,0.04), transparent 50%);
+}
+
 body::after {
   content: "";
   position: fixed;
   inset: 0;
   background-image:
-    linear-gradient(rgba(0, 0, 0, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
+    linear-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
   background-size: 50px 50px;
   mask-image: radial-gradient(circle at 50% 30%, black 40%, transparent 80%);
   -webkit-mask-image: radial-gradient(circle at 50% 30%, black 40%, transparent 80%);
@@ -118,57 +131,53 @@ body::after {
   pointer-events: none;
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: rgba(231, 1, 70, 0.15);
-  border-radius: 6px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(231, 1, 70, 0.3);
+html.dark body::after {
+  background-image:
+    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
 }
 
-/* Utility classes */
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(231, 1, 70, 0.15); border-radius: 6px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(231, 1, 70, 0.3); }
+
+/* Glass card — enhanced glass feel */
 .glass-card {
-  background: var(--color-bg-card);
-  border: 1px solid var(--color-border);
+  background: rgba(255, 255, 255, 0.72);
+  border: 1.5px solid rgba(255, 255, 255, 0.95);
   border-radius: var(--radius-card);
-  backdrop-filter: blur(var(--blur-card));
-  -webkit-backdrop-filter: blur(var(--blur-card));
-  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(var(--blur-card)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--blur-card)) saturate(180%);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(255, 255, 255, 0.6) inset;
   transition: all 0.3s ease;
 }
 
-.dark .glass-card {
-  background: rgba(20, 20, 30, 0.6);
-  border-color: rgba(255,255,255,0.06);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-}
-
 .glass-card:hover {
-  box-shadow: var(--shadow-card-hover);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.10), 0 0 0 1px rgba(255, 255, 255, 0.8) inset;
   transform: translateY(-2px);
 }
 
 .glass-card-static {
-  background: var(--color-bg-card);
-  border: 1px solid var(--color-border);
+  background: rgba(255, 255, 255, 0.72);
+  border: 1.5px solid rgba(255, 255, 255, 0.95);
   border-radius: var(--radius-card);
-  backdrop-filter: blur(var(--blur-card));
-  -webkit-backdrop-filter: blur(var(--blur-card));
-  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(var(--blur-card)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--blur-card)) saturate(180%);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(255, 255, 255, 0.6) inset;
 }
 
-.dark .glass-card-static {
-  background: rgba(20, 20, 30, 0.6);
-  border-color: rgba(255,255,255,0.06);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+/* Dark mode glass cards */
+html.dark .glass-card,
+html.dark .glass-card-static {
+  background: rgba(18, 18, 28, 0.75);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+}
+
+html.dark .glass-card:hover {
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.08) inset;
 }
 
 /* Animations */
@@ -176,33 +185,22 @@ body::after {
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
 }
-
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
 }
-
 @keyframes slideUp {
   from { opacity: 0; transform: translateY(100%); }
   to { opacity: 1; transform: translateY(0); }
 }
-
 @keyframes pulse-soft {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.6; }
 }
 
-.animate-fade-up {
-  animation: fadeUp 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both;
-}
-
-.animate-fade-in {
-  animation: fadeIn 0.3s ease both;
-}
-
-.animate-slide-up {
-  animation: slideUp 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both;
-}
+.animate-fade-up { animation: fadeUp 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.animate-fade-in { animation: fadeIn 0.3s ease both; }
+.animate-slide-up { animation: slideUp 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
 
 /* Stagger children */
 .stagger > *:nth-child(1) { animation-delay: 0ms; }
@@ -213,3 +211,8 @@ body::after {
 .stagger > *:nth-child(6) { animation-delay: 300ms; }
 .stagger > *:nth-child(7) { animation-delay: 360ms; }
 .stagger > *:nth-child(8) { animation-delay: 420ms; }
+
+/* Dark mode text overrides */
+html.dark .text-text-primary { color: #f0f0f4; }
+html.dark .text-text-secondary { color: #a0a0b0; }
+html.dark .text-text-muted { color: #707080; }

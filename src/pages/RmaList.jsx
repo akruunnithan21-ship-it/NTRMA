@@ -92,8 +92,10 @@ export default function RmaList() {
       <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide animate-fade-up">
         {statuses.map(s => (
           <button key={s} onClick={() => setStatusFilter(s)}
-            className={`whitespace-nowrap px-3 py-1.5 rounded-full text-[11px] tracking-wider font-medium transition-all duration-200 border
-              ${statusFilter === s ? 'bg-pink-50 text-pink-500 border-pink-200 shadow-[0_4px_12px_rgba(255,79,139,0.1)] dark:bg-pink-900/30 dark:border-pink-700 dark:text-pink-300' : 'bg-white/40 text-text-muted border-white/60 hover:border-pink-100 dark:bg-gray-800/40 dark:border-gray-700'}`}>
+            className={`whitespace-nowrap px-3.5 py-2 rounded-full text-[11px] tracking-wider font-medium transition-all duration-200 border
+              ${statusFilter === s 
+                ? 'bg-pink-500 text-white border-pink-500 shadow-[0_4px_16px_rgba(231,1,70,0.3)]' 
+                : 'bg-white/80 text-text-primary border-white/90 shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:border-pink-200 hover:text-pink-500'}`}>
             {s}
           </button>
         ))}

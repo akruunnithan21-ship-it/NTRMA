@@ -6,18 +6,12 @@ const useThemeStore = create((set) => ({
   toggleDark: () => set(state => {
     const next = !state.dark
     localStorage.setItem('nt-dark-mode', String(next))
-    if (next) {
-      document.documentElement.classList.add('dark')
-    } else {
-      document.documentElement.classList.remove('dark')
-    }
+    document.documentElement.classList.toggle('dark', next)
     return { dark: next }
   }),
 
   initTheme: () => set(state => {
-    if (state.dark) {
-      document.documentElement.classList.add('dark')
-    }
+    document.documentElement.classList.toggle('dark', state.dark)
     return state
   }),
 }))
