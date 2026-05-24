@@ -1,32 +1,63 @@
+import { useNavigate } from 'react-router-dom'
+import { Plus, MapPin, Monitor } from 'lucide-react'
 import GlassCard from '../components/ui/GlassCard'
+import Button from '../components/ui/Button'
+import { showToast } from '../components/ui/Toast'
 
 export default function Service() {
+  const navigate = useNavigate()
+
   return (
-    <div className="space-y-6 pt-4">
-      <GlassCard className="p-8 text-center animate-fade-up">
-        <img
-          src="/assets/logo.svg"
-          alt="Neo Tokyo"
-          className="w-20 h-20 mx-auto mb-4 drop-shadow-[0_0_20px_rgba(231,1,70,0.4)]"
-        />
-        <h2 className="text-xl font-bold tracking-wider text-text-primary mb-2">SERVICE</h2>
-        <p className="text-sm text-text-secondary leading-relaxed max-w-xs mx-auto">
-          In-shop diagnostics, repairs and service ticketing for Neo Tokyo customers. Coming online in a future build.
-        </p>
-        <span className="inline-block mt-4 px-4 py-1.5 rounded-full border border-pink-200 text-[10px] tracking-[3px] text-pink-500 font-medium bg-pink-50">
-          COMING SOON
-        </span>
+    <div className="space-y-5 pt-4">
+      {/* Header */}
+      <GlassCard className="p-5 animate-fade-up">
+        <h2 className="text-base font-bold tracking-wider text-pink-500 font-[family-name:var(--font-heading)]">SERVICE</h2>
+        <p className="text-[11px] text-text-muted mt-1">Create and manage service tickets</p>
       </GlassCard>
 
-      <GlassCard className="p-5 animate-fade-up">
-        <h3 className="text-[11px] tracking-[3px] font-semibold text-text-secondary uppercase mb-3">PLANNED FEATURES</h3>
-        <ul className="space-y-2 text-[12px] text-text-secondary leading-relaxed">
-          <li className="flex items-start gap-2"><span className="text-pink-400 mt-0.5">•</span> Walk-in service tickets</li>
-          <li className="flex items-start gap-2"><span className="text-pink-400 mt-0.5">•</span> Diagnostic checklist & test logs</li>
-          <li className="flex items-start gap-2"><span className="text-pink-400 mt-0.5">•</span> Estimate / invoice generation</li>
-          <li className="flex items-start gap-2"><span className="text-pink-400 mt-0.5">•</span> Customer pickup tracking</li>
-        </ul>
-      </GlassCard>
+      {/* Action buttons */}
+      <div className="space-y-3 animate-fade-up">
+        {/* New Service Ticket */}
+        <GlassCard hoverable className="p-5" onClick={() => navigate('/service/new')}>
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-pink-50 border border-pink-200 flex items-center justify-center">
+              <Plus size={22} className="text-pink-500" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-sm font-semibold text-text-primary tracking-wider">NEW SERVICE TICKET</h3>
+              <p className="text-[11px] text-text-muted mt-0.5">In-shop diagnostics & repairs</p>
+            </div>
+          </div>
+        </GlassCard>
+
+        {/* Onsite Ticket */}
+        <GlassCard hoverable className="p-5" onClick={() => showToast('Onsite tickets coming soon', 'info')}>
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-ice-100 border border-ice-200 flex items-center justify-center">
+              <MapPin size={22} className="text-ice-500" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-sm font-semibold text-text-primary tracking-wider">ONSITE TICKET</h3>
+              <p className="text-[11px] text-text-muted mt-0.5">Customer location service</p>
+            </div>
+            <span className="text-[9px] tracking-wider px-2 py-0.5 rounded-full bg-ice-100 text-ice-500 border border-ice-200 font-medium">SOON</span>
+          </div>
+        </GlassCard>
+
+        {/* Remote Session Ticket */}
+        <GlassCard hoverable className="p-5" onClick={() => showToast('Remote sessions coming soon', 'info')}>
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-violet-50 border border-violet-200 flex items-center justify-center">
+              <Monitor size={22} className="text-violet-500" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-sm font-semibold text-text-primary tracking-wider">REMOTE SESSION</h3>
+              <p className="text-[11px] text-text-muted mt-0.5">Remote desktop support</p>
+            </div>
+            <span className="text-[9px] tracking-wider px-2 py-0.5 rounded-full bg-violet-50 text-violet-500 border border-violet-200 font-medium">SOON</span>
+          </div>
+        </GlassCard>
+      </div>
     </div>
   )
 }

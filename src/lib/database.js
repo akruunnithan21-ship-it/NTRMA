@@ -205,3 +205,50 @@ export async function setSetting(key, value) {
   if (error) throw error
   return data
 }
+
+
+
+// ============================
+// SERVICE TICKETS
+// ============================
+export async function getServiceTickets() {
+  const { data, error } = await supabase
+    .from('service_tickets')
+    .select('*')
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return data || []
+}
+
+export async function getServiceTicket(id) {
+  const { data, error } = await supabase
+    .from('service_tickets')
+    .select('*')
+    .eq('id', id)
+    .single()
+  if (error) throw error
+  return data
+}
+
+export async function saveServiceTicket(ticket) {
+  const now = new Date().toISOString()
+  const payload = { ...ticket, updated_at: now }
+  if (!payload.created_at) payload.created_at = now
+
+  const { data, error } = await supabase
+    .from('service_tickets')
+    .upsert(payload)
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+export async function deleteServiceTicket(id) {
+  const { error } = await supabase
+    .from('service_tickets')
+    .delete()
+    .eq('id', id)
+  if (error) throw error
+  return true
+}
