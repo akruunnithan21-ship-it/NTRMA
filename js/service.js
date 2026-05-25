@@ -1,0 +1,703 @@
+/* =========================================================
+   SERVICE module — Service Tickets, Onsite, Remote Sessions
+   ========================================================= */
+window.NTService = (function () {
+  const { $, el, toast } = NTUI;
+
+  // ---- Helpers ----
+  function nowDateTimeLocal() {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    const h = String(now.getHours()).padStart(2, '0');
+    const mi = String(now.getMinutes()).padStart(2, '0');
+    return y + '-' + m + '-' + d + 'T' + h + ':' + mi;
+  }
+
+  function todayISO() {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    return y + '-' + m + '-' + d;
+  }
+
+
+  async function nextTicketNumber(prefix) {
+    let tickets = [];
+    if (prefix === 'SV') tickets = await NTDB.getServiceTickets();
+    else if (prefix === 'ON') tickets = await NTDB.getOnsiteTickets();
+    else if (prefix === 'RM') tickets = await NTDB.getRemoteTickets();
+    const yr = new Date().getFullYear().toString().slice(-2);
+    const pfx = prefix + yr + '-';
+    let max = 0;
+    tickets.forEach(t => {
+      if (t.ticketNumber && t.ticketNumber.startsWith(pfx)) {
+        const n = parseInt(t.ticketNumber.slice(pfx.length), 10);
+        if (!isNaN(n) && n > max) max = n;
+      }
+    });
+    return pfx + String(max + 1).padStart(4, '0');
+  }
+
+  function selectFrom(name, list, value, opts) {
+    opts = opts || {};
+    const select = el('select', { class: 'select', name: name, id: name });
+    if (opts.placeholder) select.appendChild(el('option', { value: '' }, opts.placeholder));
+    list.forEach(function(v) {
+      const o = el('option', { value: v }, v);
+      if (v === value) o.selected = true;
+      select.appendChild(o);
+    });
+    return select;
+  }
+
+  function field(label, control, helpText) {
+    const f = el('div', { class: 'field' });
+    f.appendChild(el('label', {}, label));
+    f.appendChild(control);
+    if (helpText) f.appendChild(el('div', { class: 'help' }, helpText));
+    return f;
+  }
+
+
+  // ===================== SERVICE TICKET FORM =====================
+  async function renderServiceForm(container, ticket) {
+    container.innerHTML = '';
+    const isEdit = !!(ticket && ticket.id);
+    const t = ticket || {
+      ticketNumber: await nextTicketNumber('SV'),
+      dateTime: nowDateTimeLocal(),
+      status: 'Open'
+    };
+
+    const technicians = await NTDB.getSetting('technicians');
+    const statuses = NTDB.DEFAULTS.serviceStatuses;
+
+    const head = el('div', { class: 'detail-head fade-up' },
+      el('div', {},
+        el('div', { class: 't' }, isEdit ? 'EDIT SERVICE TICKET' : 'NEW SERVICE TICKET'),
+        el('div', { class: 'rma' }, t.ticketNumber || '—')
+      ),
+      el('div', {},
+        el('span', { class: 'pill service-type-pill st-service' },
+          el('span', { class: 'dot' }), 'SERVICE'
+        )
+      )
+    );
+    container.appendChild(head);
+
+    const card = el('div', { class: 'glass padded fade-up' });
+    container.appendChild(card);
+
+    card.appendChild(field('Ticket Number',
+      el('input', { class: 'input', name: 'ticketNumber', value: t.ticketNumber || '', readonly: 'readonly' })
+    ));
+
+
+    card.appendChild(field('Customer Name',
+      el('input', { class: 'input', name: 'customerName', value: t.customerName || '', placeholder: 'Full name' })
+    ));
+
+    card.appendChild(field('Phone',
+      el('input', { class: 'input', type: 'tel', name: 'phone', value: t.phone || '', placeholder: 'Phone number' })
+    ));
+
+    card.appendChild(field('Date & Time',
+      el('input', { class: 'input', type: 'datetime-local', name: 'dateTime', value: t.dateTime || nowDateTimeLocal() })
+    ));
+
+    card.appendChild(field('Customer Complaint / Issues',
+      el('textarea', { class: 'textarea', name: 'complaint', placeholder: 'Describe the issue or complaint' }, t.complaint || '')
+    ));
+
+    const techRow = el('div', { class: 'row' });
+    techRow.appendChild(field('Assign Technician',
+      selectFrom('technician', technicians, t.technician, { placeholder: 'Select technician' })
+    ));
+    techRow.appendChild(field('Status',
+      selectFrom('status', statuses, t.status || 'Open')
+    ));
+    card.appendChild(techRow);
+
+    card.appendChild(field('Remarks',
+      el('textarea', { class: 'textarea', name: 'remarks', placeholder: 'Internal notes' }, t.remarks || '')
+    ));
+
+
+    // Buttons
+    var btnRow = el('div', { class: 'btn-row' });
+    var cancelBtn = el('button', { type: 'button', class: 'btn ghost' }, 'CANCEL');
+    cancelBtn.addEventListener('click', function() { NTApp.go('service', 'list'); });
+    var saveBtn = el('button', { type: 'button', class: 'btn primary' }, isEdit ? 'UPDATE' : 'SAVE TICKET');
+    saveBtn.addEventListener('click', async function() {
+      var payload = collectService(card);
+      payload.id = t.id;
+      payload.createdAt = t.createdAt;
+      payload.type = 'service';
+      var saved = await NTDB.saveServiceTicket(payload);
+      toast(isEdit ? 'Ticket updated' : 'Service ticket saved');
+      NTApp.go('service', 'list');
+    });
+    btnRow.appendChild(cancelBtn);
+    btnRow.appendChild(saveBtn);
+    card.appendChild(btnRow);
+
+    if (isEdit) {
+      var delBtn = el('button', { type: 'button', class: 'btn danger full mt-12' }, 'DELETE TICKET');
+      delBtn.addEventListener('click', async function() {
+        if (!await NTUI.confirm('Delete ticket ' + t.ticketNumber + '? This cannot be undone.')) return;
+        await NTDB.deleteServiceTicket(t.id);
+        toast('Ticket deleted');
+        NTApp.go('service', 'list');
+      });
+      card.appendChild(delBtn);
+
+      var printBtn = el('button', { type: 'button', class: 'btn ghost full mt-12' }, '🖨  PRINT TICKET');
+      printBtn.addEventListener('click', function() { printTicket(t, 'SERVICE'); });
+      card.appendChild(printBtn);
+    }
+  }
+
+  function collectService(root) {
+    var getValue = function(name) {
+      var f = root.querySelector('[name="' + name + '"]');
+      return f ? (f.value || '').trim() : '';
+    };
+    return {
+      ticketNumber: getValue('ticketNumber'),
+      customerName: getValue('customerName'),
+      phone: getValue('phone'),
+      dateTime: getValue('dateTime'),
+      complaint: getValue('complaint'),
+      technician: getValue('technician'),
+      status: getValue('status') || 'Open',
+      remarks: getValue('remarks')
+    };
+  }
+
+
+  // ===================== ONSITE TICKET FORM =====================
+  async function renderOnsiteForm(container, ticket) {
+    container.innerHTML = '';
+    var isEdit = !!(ticket && ticket.id);
+    var t = ticket || {
+      ticketNumber: await nextTicketNumber('ON'),
+      dateTime: nowDateTimeLocal(),
+      status: 'Open'
+    };
+
+    var technicians = await NTDB.getSetting('technicians');
+    var statuses = NTDB.DEFAULTS.onsiteStatuses;
+
+    var head = el('div', { class: 'detail-head fade-up' },
+      el('div', {},
+        el('div', { class: 't' }, isEdit ? 'EDIT ONSITE TICKET' : 'NEW ONSITE TICKET'),
+        el('div', { class: 'rma' }, t.ticketNumber || '—')
+      ),
+      el('div', {},
+        el('span', { class: 'pill service-type-pill st-onsite' },
+          el('span', { class: 'dot' }), 'ONSITE'
+        )
+      )
+    );
+    container.appendChild(head);
+
+    var card = el('div', { class: 'glass padded fade-up' });
+    container.appendChild(card);
+
+    card.appendChild(field('Ticket Number',
+      el('input', { class: 'input', name: 'ticketNumber', value: t.ticketNumber || '', readonly: 'readonly' })
+    ));
+
+    card.appendChild(field('Customer Name',
+      el('input', { class: 'input', name: 'customerName', value: t.customerName || '', placeholder: 'Full name' })
+    ));
+
+    card.appendChild(field('Phone',
+      el('input', { class: 'input', type: 'tel', name: 'phone', value: t.phone || '', placeholder: 'Phone number' })
+    ));
+
+
+    card.appendChild(field('Date & Time',
+      el('input', { class: 'input', type: 'datetime-local', name: 'dateTime', value: t.dateTime || nowDateTimeLocal() })
+    ));
+
+    card.appendChild(field('Customer Complaint / Issues',
+      el('textarea', { class: 'textarea', name: 'complaint', placeholder: 'Describe the issue or complaint' }, t.complaint || '')
+    ));
+
+    card.appendChild(field('Location',
+      el('input', { class: 'input', name: 'location', value: t.location || '', placeholder: 'Customer address / location' })
+    ));
+
+    var techRow = el('div', { class: 'row' });
+    techRow.appendChild(field('Assign Technician',
+      selectFrom('technician', technicians, t.technician, { placeholder: 'Select technician' })
+    ));
+    techRow.appendChild(field('Status',
+      selectFrom('status', statuses, t.status || 'Open')
+    ));
+    card.appendChild(techRow);
+
+    card.appendChild(field('Remarks',
+      el('textarea', { class: 'textarea', name: 'remarks', placeholder: 'Internal notes' }, t.remarks || '')
+    ));
+
+    // Buttons
+    var btnRow = el('div', { class: 'btn-row' });
+    var cancelBtn = el('button', { type: 'button', class: 'btn ghost' }, 'CANCEL');
+    cancelBtn.addEventListener('click', function() { NTApp.go('service', 'list'); });
+    var saveBtn = el('button', { type: 'button', class: 'btn primary' }, isEdit ? 'UPDATE' : 'SAVE TICKET');
+    saveBtn.addEventListener('click', async function() {
+      var payload = collectOnsite(card);
+      payload.id = t.id;
+      payload.createdAt = t.createdAt;
+      payload.type = 'onsite';
+      var saved = await NTDB.saveOnsiteTicket(payload);
+      toast(isEdit ? 'Ticket updated' : 'Onsite ticket saved');
+      NTApp.go('service', 'list');
+    });
+    btnRow.appendChild(cancelBtn);
+    btnRow.appendChild(saveBtn);
+    card.appendChild(btnRow);
+
+
+    if (isEdit) {
+      var delBtn = el('button', { type: 'button', class: 'btn danger full mt-12' }, 'DELETE TICKET');
+      delBtn.addEventListener('click', async function() {
+        if (!await NTUI.confirm('Delete ticket ' + t.ticketNumber + '? This cannot be undone.')) return;
+        await NTDB.deleteOnsiteTicket(t.id);
+        toast('Ticket deleted');
+        NTApp.go('service', 'list');
+      });
+      card.appendChild(delBtn);
+
+      var printBtn = el('button', { type: 'button', class: 'btn ghost full mt-12' }, '🖨  PRINT TICKET');
+      printBtn.addEventListener('click', function() { printTicket(t, 'ONSITE'); });
+      card.appendChild(printBtn);
+    }
+  }
+
+  function collectOnsite(root) {
+    var getValue = function(name) {
+      var f = root.querySelector('[name="' + name + '"]');
+      return f ? (f.value || '').trim() : '';
+    };
+    return {
+      ticketNumber: getValue('ticketNumber'),
+      customerName: getValue('customerName'),
+      phone: getValue('phone'),
+      dateTime: getValue('dateTime'),
+      complaint: getValue('complaint'),
+      location: getValue('location'),
+      technician: getValue('technician'),
+      status: getValue('status') || 'Open',
+      remarks: getValue('remarks')
+    };
+  }
+
+
+  // ===================== REMOTE SESSION TICKET FORM =====================
+  async function renderRemoteForm(container, ticket) {
+    container.innerHTML = '';
+    var isEdit = !!(ticket && ticket.id);
+    var t = ticket || {
+      ticketNumber: await nextTicketNumber('RM'),
+      dateTime: nowDateTimeLocal(),
+      status: 'Open'
+    };
+
+    var technicians = await NTDB.getSetting('technicians');
+    var statuses = NTDB.DEFAULTS.remoteStatuses;
+
+    var head = el('div', { class: 'detail-head fade-up' },
+      el('div', {},
+        el('div', { class: 't' }, isEdit ? 'EDIT REMOTE SESSION' : 'NEW REMOTE SESSION'),
+        el('div', { class: 'rma' }, t.ticketNumber || '—')
+      ),
+      el('div', {},
+        el('span', { class: 'pill service-type-pill st-remote' },
+          el('span', { class: 'dot' }), 'REMOTE'
+        )
+      )
+    );
+    container.appendChild(head);
+
+    var card = el('div', { class: 'glass padded fade-up' });
+    container.appendChild(card);
+
+    card.appendChild(field('Ticket Number',
+      el('input', { class: 'input', name: 'ticketNumber', value: t.ticketNumber || '', readonly: 'readonly' })
+    ));
+
+    card.appendChild(field('Customer Name',
+      el('input', { class: 'input', name: 'customerName', value: t.customerName || '', placeholder: 'Full name' })
+    ));
+
+    card.appendChild(field('Phone',
+      el('input', { class: 'input', type: 'tel', name: 'phone', value: t.phone || '', placeholder: 'Phone number' })
+    ));
+
+
+    card.appendChild(field('Date & Time',
+      el('input', { class: 'input', type: 'datetime-local', name: 'dateTime', value: t.dateTime || nowDateTimeLocal() })
+    ));
+
+    card.appendChild(field('Customer Complaint / Issues',
+      el('textarea', { class: 'textarea', name: 'complaint', placeholder: 'Describe the issue or complaint' }, t.complaint || '')
+    ));
+
+    card.appendChild(field('Location',
+      el('input', { class: 'input', name: 'location', value: t.location || '', placeholder: 'Remote location / address (optional)' })
+    ));
+
+    var techRow = el('div', { class: 'row' });
+    techRow.appendChild(field('Assign Technician',
+      selectFrom('technician', technicians, t.technician, { placeholder: 'Select technician' })
+    ));
+    techRow.appendChild(field('Status',
+      selectFrom('status', statuses, t.status || 'Open')
+    ));
+    card.appendChild(techRow);
+
+    card.appendChild(field('Remarks',
+      el('textarea', { class: 'textarea', name: 'remarks', placeholder: 'Internal notes' }, t.remarks || '')
+    ));
+
+    // Buttons
+    var btnRow = el('div', { class: 'btn-row' });
+    var cancelBtn = el('button', { type: 'button', class: 'btn ghost' }, 'CANCEL');
+    cancelBtn.addEventListener('click', function() { NTApp.go('service', 'list'); });
+    var saveBtn = el('button', { type: 'button', class: 'btn primary' }, isEdit ? 'UPDATE' : 'SAVE TICKET');
+    saveBtn.addEventListener('click', async function() {
+      var payload = collectRemote(card);
+      payload.id = t.id;
+      payload.createdAt = t.createdAt;
+      payload.type = 'remote';
+      var saved = await NTDB.saveRemoteTicket(payload);
+      toast(isEdit ? 'Ticket updated' : 'Remote session saved');
+      NTApp.go('service', 'list');
+    });
+    btnRow.appendChild(cancelBtn);
+    btnRow.appendChild(saveBtn);
+    card.appendChild(btnRow);
+
+
+    if (isEdit) {
+      var delBtn = el('button', { type: 'button', class: 'btn danger full mt-12' }, 'DELETE TICKET');
+      delBtn.addEventListener('click', async function() {
+        if (!await NTUI.confirm('Delete ticket ' + t.ticketNumber + '? This cannot be undone.')) return;
+        await NTDB.deleteRemoteTicket(t.id);
+        toast('Ticket deleted');
+        NTApp.go('service', 'list');
+      });
+      card.appendChild(delBtn);
+
+      var printBtn = el('button', { type: 'button', class: 'btn ghost full mt-12' }, '🖨  PRINT TICKET');
+      printBtn.addEventListener('click', function() { printTicket(t, 'REMOTE'); });
+      card.appendChild(printBtn);
+    }
+  }
+
+  function collectRemote(root) {
+    var getValue = function(name) {
+      var f = root.querySelector('[name="' + name + '"]');
+      return f ? (f.value || '').trim() : '';
+    };
+    return {
+      ticketNumber: getValue('ticketNumber'),
+      customerName: getValue('customerName'),
+      phone: getValue('phone'),
+      dateTime: getValue('dateTime'),
+      complaint: getValue('complaint'),
+      location: getValue('location'),
+      technician: getValue('technician'),
+      status: getValue('status') || 'Open',
+      remarks: getValue('remarks')
+    };
+  }
+
+
+  // ===================== SERVICE MENU (landing) =====================
+  function renderMenu(container) {
+    container.innerHTML = '';
+
+    var title = el('div', { class: 'section-title fade-up' }, 'CREATE NEW TICKET');
+    container.appendChild(title);
+
+    var grid = el('div', { class: 'service-menu-grid fade-up' });
+
+    var svcCard = el('div', { class: 'service-menu-card st-service-card' });
+    svcCard.appendChild(el('div', { class: 'smc-icon' }, '⚙'));
+    svcCard.appendChild(el('div', { class: 'smc-label' }, 'SERVICE TICKET'));
+    svcCard.appendChild(el('div', { class: 'smc-sub' }, 'In-store diagnostics & repair'));
+    svcCard.addEventListener('click', function() { NTApp.go('service', 'new-service'); });
+    grid.appendChild(svcCard);
+
+    var onCard = el('div', { class: 'service-menu-card st-onsite-card' });
+    onCard.appendChild(el('div', { class: 'smc-icon' }, '🏠'));
+    onCard.appendChild(el('div', { class: 'smc-label' }, 'ONSITE TICKET'));
+    onCard.appendChild(el('div', { class: 'smc-sub' }, 'On-location service visit'));
+    onCard.addEventListener('click', function() { NTApp.go('service', 'new-onsite'); });
+    grid.appendChild(onCard);
+
+    var rmCard = el('div', { class: 'service-menu-card st-remote-card' });
+    rmCard.appendChild(el('div', { class: 'smc-icon' }, '🖥'));
+    rmCard.appendChild(el('div', { class: 'smc-label' }, 'REMOTE SESSION'));
+    rmCard.appendChild(el('div', { class: 'smc-sub' }, 'Remote desktop support'));
+    rmCard.addEventListener('click', function() { NTApp.go('service', 'new-remote'); });
+    grid.appendChild(rmCard);
+
+    container.appendChild(grid);
+
+    // View all tickets button
+    var viewAllBtn = el('button', { class: 'btn primary full mt-16 fade-up' }, '☰  VIEW ALL TICKETS');
+    viewAllBtn.addEventListener('click', function() { NTApp.go('service', 'list'); });
+    container.appendChild(viewAllBtn);
+  }
+
+
+  // ===================== COMBINED LIST VIEW =====================
+  async function renderList(container) {
+    container.innerHTML = '';
+
+    // Back to menu button
+    var backBtn = el('button', { class: 'btn ghost fade-up', style: 'margin-bottom:12px;' }, '← BACK TO MENU');
+    backBtn.addEventListener('click', function() { NTApp.go('service', 'menu'); });
+    container.appendChild(backBtn);
+
+    var serviceTickets = await NTDB.getServiceTickets();
+    var onsiteTickets = await NTDB.getOnsiteTickets();
+    var remoteTickets = await NTDB.getRemoteTickets();
+
+    // Tag each ticket type
+    serviceTickets.forEach(function(t) { t._type = 'service'; });
+    onsiteTickets.forEach(function(t) { t._type = 'onsite'; });
+    remoteTickets.forEach(function(t) { t._type = 'remote'; });
+
+    var allTickets = serviceTickets.concat(onsiteTickets, remoteTickets);
+    allTickets.sort(function(a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
+
+    // Search bar
+    var search = el('div', { class: 'searchbar fade-up' },
+      el('span', { class: 'muted' }, '🔎'),
+      el('input', { type: 'search', placeholder: 'Search tickets, name, phone…' })
+    );
+    search.querySelector('input').addEventListener('input', function(e) { filterList(e.target.value); });
+    container.appendChild(search);
+
+    // Filter row
+    var filterRow = el('div', { class: 'searchbar fade-up', style: 'gap:8px;' });
+    var typeSel = selectFrom('flt-type', ['All', 'Service', 'Onsite', 'Remote'], 'All');
+    typeSel.style.maxWidth = '140px';
+    typeSel.addEventListener('change', function() { filterList(searchVal()); });
+    filterRow.appendChild(el('span', { class: 'muted', style: 'font-size:11px; letter-spacing:2px;' }, 'TYPE'));
+    filterRow.appendChild(typeSel);
+
+    var statusSel = selectFrom('flt-status2', ['All', 'Open', 'Closed', 'Pending', 'Requires RMA', 'Requires In-Store Service'], 'All');
+    statusSel.style.maxWidth = '180px';
+    statusSel.addEventListener('change', function() { filterList(searchVal()); });
+    filterRow.appendChild(el('span', { class: 'muted', style: 'font-size:11px; letter-spacing:2px;' }, 'STATUS'));
+    filterRow.appendChild(statusSel);
+    container.appendChild(filterRow);
+
+    var list = el('div', { class: 'list fade-up' });
+    container.appendChild(list);
+
+    function searchVal() { return search.querySelector('input').value.toLowerCase(); }
+
+
+    function filterList(q) {
+      q = (q || '').toLowerCase();
+      var typeFilter = typeSel.value.toLowerCase();
+      var statusFilter = statusSel.value;
+      list.innerHTML = '';
+
+      var visible = allTickets.filter(function(t) {
+        if (typeFilter !== 'all' && t._type !== typeFilter) return false;
+        if (statusFilter !== 'All' && t.status !== statusFilter) return false;
+        if (!q) return true;
+        var hay = [t.ticketNumber, t.customerName, t.phone, t.complaint, t.technician, t.location, t.remarks].join(' ').toLowerCase();
+        return hay.includes(q);
+      });
+
+      if (!visible.length) {
+        list.appendChild(el('div', { class: 'empty' }, el('div', { class: 'big' }, '∅'), 'NO TICKETS FOUND'));
+        return;
+      }
+      visible.forEach(function(t) { list.appendChild(ticketRow(t)); });
+    }
+
+    function ticketRow(t) {
+      var typeLabel = t._type === 'service' ? 'SERVICE' : t._type === 'onsite' ? 'ONSITE' : 'REMOTE';
+      var typeClass = 'st-' + t._type;
+      var dateStr = '';
+      if (t.dateTime) {
+        try {
+          var d = new Date(t.dateTime);
+          dateStr = d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        } catch(e) { dateStr = t.dateTime; }
+      }
+      var subBits = [t.technician, dateStr].filter(Boolean).join(' • ');
+
+      var row = el('div', { class: 'list-item service-list-item' },
+        el('div', { class: 'meta' },
+          el('div', { class: 'name' }, t.customerName || '— no name —'),
+          el('div', { class: 'sub' }, subBits || '—'),
+          t.location ? el('div', { class: 'sub' }, '📍 ' + t.location) : null
+        ),
+        el('div', { class: 'right' },
+          el('span', { class: 'rma-no' }, t.ticketNumber || '—'),
+          el('span', { class: 'pill service-type-pill ' + typeClass },
+            el('span', { class: 'dot' }), typeLabel
+          ),
+          el('span', { class: 'pill', dataset: { status: t.status || 'Open' } },
+            el('span', { class: 'dot' }), t.status || 'Open'
+          )
+        )
+      );
+      row.addEventListener('click', function() {
+        NTApp.state.activeServiceTicket = t;
+        if (t._type === 'service') NTApp.go('service', 'edit-service');
+        else if (t._type === 'onsite') NTApp.go('service', 'edit-onsite');
+        else NTApp.go('service', 'edit-remote');
+      });
+      return row;
+    }
+
+    filterList('');
+  }
+
+
+  // ===================== DASHBOARD STATS =====================
+  async function getStats() {
+    var serviceTickets = await NTDB.getServiceTickets();
+    var onsiteTickets = await NTDB.getOnsiteTickets();
+    var remoteTickets = await NTDB.getRemoteTickets();
+
+    return {
+      service: {
+        total: serviceTickets.length,
+        open: serviceTickets.filter(function(t) { return t.status === 'Open' || t.status === 'Pending'; }).length,
+        closed: serviceTickets.filter(function(t) { return t.status === 'Closed'; }).length
+      },
+      onsite: {
+        total: onsiteTickets.length,
+        open: onsiteTickets.filter(function(t) { return t.status === 'Open' || t.status === 'Pending'; }).length,
+        closed: onsiteTickets.filter(function(t) { return t.status === 'Closed'; }).length
+      },
+      remote: {
+        total: remoteTickets.length,
+        open: remoteTickets.filter(function(t) { return t.status === 'Open' || t.status === 'Pending'; }).length,
+        closed: remoteTickets.filter(function(t) { return t.status === 'Closed'; }).length
+      }
+    };
+  }
+
+  // ===================== PRINT TICKET =====================
+  function printTicket(ticket, typeLabel) {
+    var dateStr = '';
+    if (ticket.dateTime) {
+      try {
+        var d = new Date(ticket.dateTime);
+        dateStr = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) + ' ' + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+      } catch(e) { dateStr = ticket.dateTime; }
+    }
+
+    var html = '<!DOCTYPE html><html><head><meta charset="utf-8"/><title>Ticket ' + (ticket.ticketNumber || '') + '</title>';
+    html += '<style>';
+    html += 'body{font-family:"Segoe UI",Arial,sans-serif;margin:0;padding:20px 30px;color:#111;font-size:13px;}';
+    html += '.header{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #E70146;padding-bottom:12px;margin-bottom:16px;}';
+    html += '.header h1{font-size:20px;margin:0;letter-spacing:2px;color:#E70146;}';
+    html += '.header .ticket-no{font-family:monospace;font-size:14px;color:#333;}';
+    html += '.type-badge{display:inline-block;padding:4px 12px;border-radius:4px;font-size:11px;font-weight:700;letter-spacing:1.5px;color:#fff;margin-bottom:12px;}';
+    html += '.type-service{background:#0288d1;}';
+    html += '.type-onsite{background:#f57c00;}';
+    html += '.type-remote{background:#7b1fa2;}';
+    html += 'table{width:100%;border-collapse:collapse;margin-bottom:20px;}';
+    html += 'table td{padding:8px 12px;border:1px solid #ddd;vertical-align:top;}';
+    html += 'table td:first-child{font-weight:600;width:160px;background:#f9f9f9;text-transform:uppercase;font-size:11px;letter-spacing:1px;color:#555;}';
+    html += '.complaint-box{background:#f5f5f5;border:1px solid #ddd;padding:12px;border-radius:4px;min-height:60px;margin-bottom:20px;white-space:pre-wrap;}';
+    html += '.signatures{display:flex;justify-content:space-between;margin-top:40px;padding-top:10px;}';
+    html += '.sig-block{width:45%;text-align:center;}';
+    html += '.sig-line{border-top:1px solid #333;margin-top:60px;padding-top:6px;font-size:11px;color:#555;}';
+    html += '.terms{margin-top:30px;padding:14px;border:1px solid #ddd;border-radius:4px;background:#fafafa;font-size:10px;color:#666;line-height:1.6;}';
+    html += '.terms h4{margin:0 0 8px;font-size:11px;color:#333;text-transform:uppercase;letter-spacing:1px;}';
+    html += '.footer{margin-top:20px;text-align:center;font-size:10px;color:#999;border-top:1px solid #eee;padding-top:10px;}';
+    html += '@media print{body{padding:10px 20px;} .no-print{display:none !important;}}';
+    html += '</style></head><body>';
+
+    // Header
+    html += '<div class="header">';
+    html += '<h1>NEO TOKYO</h1>';
+    html += '<div class="ticket-no">' + (ticket.ticketNumber || '—') + '</div>';
+    html += '</div>';
+
+    // Type badge
+    var badgeClass = typeLabel === 'SERVICE' ? 'type-service' : typeLabel === 'ONSITE' ? 'type-onsite' : 'type-remote';
+    html += '<div class="type-badge ' + badgeClass + '">' + typeLabel + ' TICKET</div>';
+
+    // Details table
+    html += '<table>';
+    html += '<tr><td>Customer Name</td><td>' + (ticket.customerName || '—') + '</td></tr>';
+    html += '<tr><td>Phone</td><td>' + (ticket.phone || '—') + '</td></tr>';
+    html += '<tr><td>Date & Time</td><td>' + (dateStr || '—') + '</td></tr>';
+    if (ticket.location) {
+      html += '<tr><td>Location</td><td>' + ticket.location + '</td></tr>';
+    }
+    html += '<tr><td>Technician</td><td>' + (ticket.technician || 'Unassigned') + '</td></tr>';
+    html += '<tr><td>Status</td><td>' + (ticket.status || 'Open') + '</td></tr>';
+    if (ticket.remarks) {
+      html += '<tr><td>Remarks</td><td>' + ticket.remarks + '</td></tr>';
+    }
+    html += '</table>';
+
+    // Complaint box
+    html += '<div style="font-weight:600;font-size:11px;letter-spacing:1px;color:#555;margin-bottom:6px;">CUSTOMER COMPLAINT / ISSUES</div>';
+    html += '<div class="complaint-box">' + (ticket.complaint || '—') + '</div>';
+
+    // Terms & Conditions
+    html += '<div class="terms">';
+    html += '<h4>Terms & Conditions</h4>';
+    html += '1. All repairs and services are subject to diagnosis. Final charges may vary based on actual work performed.<br>';
+    html += '2. Neo Tokyo is not responsible for any data loss during service. Customers are advised to backup all data before handing over devices.<br>';
+    html += '3. Devices left uncollected for more than 30 days after service completion will be subject to storage charges.<br>';
+    html += '4. Warranty on repairs is limited to 7 days from the date of delivery unless otherwise stated.<br>';
+    html += '5. Any physical damage found during service that was not reported at intake is not covered under this service agreement.<br>';
+    html += '6. Payment is due upon completion of service unless prior arrangements have been made.<br>';
+    html += '7. By signing below, the customer acknowledges and agrees to these terms and conditions.';
+    html += '</div>';
+
+    // Signature section
+    html += '<div class="signatures">';
+    html += '<div class="sig-block"><div class="sig-line">Customer Signature</div></div>';
+    html += '<div class="sig-block"><div class="sig-line">Authorized by Neo Tokyo</div></div>';
+    html += '</div>';
+
+    // Footer
+    html += '<div class="footer">Neo Tokyo · Service & RMA · Kochi | Generated: ' + new Date().toLocaleString('en-IN') + '</div>';
+
+    html += '</body></html>';
+
+    var printWin = window.open('', '_blank', 'width=800,height=900');
+    if (printWin) {
+      printWin.document.write(html);
+      printWin.document.close();
+      setTimeout(function() { printWin.print(); }, 400);
+    } else {
+      toast('Popup blocked. Please allow popups for printing.');
+    }
+  }
+
+  return {
+    renderMenu: renderMenu,
+    renderList: renderList,
+    renderServiceForm: renderServiceForm,
+    renderOnsiteForm: renderOnsiteForm,
+    renderRemoteForm: renderRemoteForm,
+    getStats: getStats,
+    printTicket: printTicket
+  };
+})();

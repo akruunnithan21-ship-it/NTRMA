@@ -61,13 +61,19 @@
 
     <!-- Section navigator -->
     <nav class="section-nav" aria-label="Sections">
+      <div class="sn-card active" data-section="dashboard" role="button" tabindex="0">
+        <span class="ico">◉</span>
+        <span class="lbl">DASH</span>
+        <span class="stat">OVERVIEW</span>
+        <span class="badge">LIVE</span>
+      </div>
       <div class="sn-card" data-section="service" role="button" tabindex="0">
         <span class="ico">⚙</span>
         <span class="lbl">SERVICE</span>
-        <span class="stat">PLACEHOLDER</span>
-        <span class="badge">SOON</span>
+        <span class="stat">ACTIVE</span>
+        <span class="badge">LIVE</span>
       </div>
-      <div class="sn-card active" data-section="rma" role="button" tabindex="0">
+      <div class="sn-card" data-section="rma" role="button" tabindex="0">
         <span class="ico">⤶</span>
         <span class="lbl">RMA</span>
         <span class="stat">ACTIVE</span>
@@ -100,6 +106,7 @@
   <script src="js/ui.js"></script>
   <script src="js/rma.js"></script>
   <script src="js/rack.js"></script>
+  <script src="js/service.js"></script>
   <script src="js/settings.js"></script>
   <script src="js/app.js"></script>
   <script>
