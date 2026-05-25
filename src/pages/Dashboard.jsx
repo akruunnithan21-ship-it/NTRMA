@@ -57,9 +57,10 @@ export default function Dashboard() {
     : []
 
   return (
-    <div className="space-y-5 pt-4 stagger">
-      <div className="relative animate-fade-up">
-        <SearchBar value={quickSearch} onChange={setQuickSearch} placeholder="Quick search..." />
+    <div className="pt-4 stagger">
+      {/* Search — full width */}
+      <div className="relative animate-fade-up mb-5">
+        <SearchBar value={quickSearch} onChange={setQuickSearch} placeholder="Quick search RMA tickets..." />
         {searchResults.length > 0 && (
           <div className="absolute top-full left-0 right-0 mt-2 z-50 glass-card-static max-h-64 overflow-y-auto">
             <div className="p-2 space-y-1">
@@ -80,74 +81,90 @@ export default function Dashboard() {
         )}
       </div>
 
-      <div className="animate-fade-up">
-        <h3 className="text-[10px] tracking-[3px] font-semibold text-text-secondary uppercase mb-2 px-1">RMA — THIS MONTH</h3>
-        <div className="grid grid-cols-4 gap-2">
-          <GlassCard hoverable className="p-3 text-center" onClick={() => navigate('/rma')}><div className="text-xl font-bold text-text-primary font-[family-name:var(--font-heading)]">{rmaThisMonth.length}</div><div className="text-[8px] tracking-[1.5px] text-text-muted mt-0.5">TOTAL</div></GlassCard>
-          <GlassCard hoverable className="p-3 text-center" onClick={() => navigate('/rma?status=Open')}><div className="text-xl font-bold text-pink-500 font-[family-name:var(--font-heading)]">{rmaOpen}</div><div className="text-[8px] tracking-[1.5px] text-text-muted mt-0.5">OPEN</div></GlassCard>
-          <GlassCard hoverable className="p-3 text-center" onClick={() => navigate('/rma?status=Closed')}><div className="text-xl font-bold text-emerald-500 font-[family-name:var(--font-heading)]">{rmaClosed}</div><div className="text-[8px] tracking-[1.5px] text-text-muted mt-0.5">CLOSED</div></GlassCard>
-          <GlassCard hoverable className="p-3 text-center" onClick={() => navigate('/rma?status=Ready+for+pick+up')}><div className="text-xl font-bold text-amber-500 font-[family-name:var(--font-heading)]">{rmaReady}</div><div className="text-[8px] tracking-[1.5px] text-text-muted mt-0.5">READY</div></GlassCard>
-        </div>
-      </div>
-
-      <div className="animate-fade-up">
-        <h3 className="text-[10px] tracking-[3px] font-semibold text-text-secondary uppercase mb-2 px-1">SERVICE — THIS MONTH</h3>
-        <div className="grid grid-cols-4 gap-2">
-          <GlassCard hoverable className="p-3 text-center" onClick={() => navigate('/service')}><div className="text-xl font-bold text-text-primary font-[family-name:var(--font-heading)]">{svcThisMonth.length}</div><div className="text-[8px] tracking-[1.5px] text-text-muted mt-0.5">TOTAL</div></GlassCard>
-          <GlassCard hoverable className="p-3 text-center" onClick={() => navigate('/service?status=Open')}><div className="text-xl font-bold text-violet-500 font-[family-name:var(--font-heading)]">{svcOpen}</div><div className="text-[8px] tracking-[1.5px] text-text-muted mt-0.5">OPEN</div></GlassCard>
-          <GlassCard hoverable className="p-3 text-center" onClick={() => navigate('/service?status=Closed')}><div className="text-xl font-bold text-emerald-500 font-[family-name:var(--font-heading)]">{svcClosed}</div><div className="text-[8px] tracking-[1.5px] text-text-muted mt-0.5">CLOSED</div></GlassCard>
-          <GlassCard hoverable className="p-3 text-center" onClick={() => navigate('/service?status=Pending')}><div className="text-xl font-bold text-orange-500 font-[family-name:var(--font-heading)]">{svcPending}</div><div className="text-[8px] tracking-[1.5px] text-text-muted mt-0.5">PENDING</div></GlassCard>
-        </div>
-      </div>
-
-      <div className="animate-fade-up">
-        <h3 className="text-[10px] tracking-[3px] font-semibold text-text-secondary uppercase mb-2 px-1">ONSITE — THIS MONTH</h3>
-        <div className="grid grid-cols-3 gap-2">
-          <GlassCard hoverable className="p-3 text-center" onClick={() => navigate('/service')}><div className="text-xl font-bold text-text-primary font-[family-name:var(--font-heading)]">{onThisMonth.length}</div><div className="text-[8px] tracking-[1.5px] text-text-muted mt-0.5">TOTAL</div></GlassCard>
-          <GlassCard hoverable className="p-3 text-center"><div className="text-xl font-bold text-orange-500 font-[family-name:var(--font-heading)]">{onOpen}</div><div className="text-[8px] tracking-[1.5px] text-text-muted mt-0.5">OPEN</div></GlassCard>
-          <GlassCard hoverable className="p-3 text-center"><div className="text-xl font-bold text-emerald-500 font-[family-name:var(--font-heading)]">{onClosed}</div><div className="text-[8px] tracking-[1.5px] text-text-muted mt-0.5">CLOSED</div></GlassCard>
-        </div>
-      </div>
-
-      <div className="animate-fade-up">
-        <h3 className="text-[10px] tracking-[3px] font-semibold text-text-secondary uppercase mb-2 px-1">REMOTE — THIS MONTH</h3>
-        <div className="grid grid-cols-3 gap-2">
-          <GlassCard hoverable className="p-3 text-center" onClick={() => navigate('/service')}><div className="text-xl font-bold text-text-primary font-[family-name:var(--font-heading)]">{rmThisMonth.length}</div><div className="text-[8px] tracking-[1.5px] text-text-muted mt-0.5">TOTAL</div></GlassCard>
-          <GlassCard hoverable className="p-3 text-center"><div className="text-xl font-bold text-violet-500 font-[family-name:var(--font-heading)]">{rmOpen}</div><div className="text-[8px] tracking-[1.5px] text-text-muted mt-0.5">OPEN</div></GlassCard>
-          <GlassCard hoverable className="p-3 text-center"><div className="text-xl font-bold text-emerald-500 font-[family-name:var(--font-heading)]">{rmClosed}</div><div className="text-[8px] tracking-[1.5px] text-text-muted mt-0.5">CLOSED</div></GlassCard>
-        </div>
-      </div>
-
-      <div className="flex gap-3 animate-fade-up">
-        <Button variant="primary" className="flex-1" onClick={() => navigate('/rma/new')}><Plus size={16} /> NEW RMA</Button>
-        <Button variant="ghost" className="flex-1" onClick={() => navigate('/service/new')}><Plus size={16} /> NEW SERVICE</Button>
-      </div>
-
-      <div className="animate-fade-up">
-        <div className="flex items-center justify-between mb-3 px-1">
-          <h3 className="text-[11px] tracking-[3px] font-semibold text-text-secondary uppercase">Recent RMA</h3>
-          <button onClick={() => navigate('/rma')} className="text-[10px] tracking-wider text-pink-500 font-medium flex items-center gap-1 hover:underline">VIEW ALL <ArrowRight size={12} /></button>
-        </div>
-        {tickets.slice(0, 4).length === 0 ? (
-          <GlassCard className="p-6 text-center"><p className="text-[12px] tracking-wider text-text-muted">No RMA tickets yet</p></GlassCard>
-        ) : (
-          <div className="space-y-2">
-            {tickets.slice(0, 4).map(t => (
-              <GlassCard key={t.id} hoverable className="p-4" onClick={() => navigate(`/rma/${t.id}`)}>
-                <div className="flex items-center justify-between">
-                  <div className="min-w-0 flex-1">
-                    <div className="text-sm font-semibold text-text-primary truncate">{t.customer_name || '—'}</div>
-                    <div className="text-[11px] text-text-muted mt-0.5 truncate">{[t.component_type, t.vendor].filter(Boolean).join(' • ')}</div>
-                  </div>
-                  <div className="flex flex-col items-end gap-1.5 ml-3">
-                    <span className="text-[10px] font-mono text-pink-500">{t.rma_number || '—'}</span>
-                    <StatusPill status={t.status} />
-                  </div>
-                </div>
-              </GlassCard>
-            ))}
+      {/* Desktop: 2 column layout — Left: actions + recent | Right: stats */}
+      <div className="lg:grid lg:grid-cols-[1fr_340px] lg:gap-6">
+        {/* LEFT COLUMN — Actions + Recent tickets */}
+        <div className="space-y-5">
+          {/* Quick actions */}
+          <div className="flex gap-3 animate-fade-up">
+            <Button variant="primary" className="flex-1" onClick={() => navigate('/rma/new')}><Plus size={16} /> NEW RMA</Button>
+            <Button variant="ghost" className="flex-1" onClick={() => navigate('/service/new')}><Plus size={16} /> NEW SERVICE</Button>
+            <Button variant="ghost" className="flex-1 hidden lg:inline-flex" onClick={() => navigate('/onsite/new')}><Plus size={16} /> ONSITE</Button>
           </div>
-        )}
+
+          {/* Recent RMA */}
+          <div className="animate-fade-up">
+            <div className="flex items-center justify-between mb-3 px-1">
+              <h3 className="text-[11px] tracking-[3px] font-semibold text-text-secondary uppercase">Recent RMA</h3>
+              <button onClick={() => navigate('/rma')} className="text-[10px] tracking-wider text-pink-500 font-medium flex items-center gap-1 hover:underline">VIEW ALL <ArrowRight size={12} /></button>
+            </div>
+            {tickets.slice(0, 6).length === 0 ? (
+              <GlassCard className="p-6 text-center"><p className="text-[12px] tracking-wider text-text-muted">No RMA tickets yet</p></GlassCard>
+            ) : (
+              <div className="space-y-2">
+                {tickets.slice(0, 6).map(t => (
+                  <GlassCard key={t.id} hoverable className="p-4" onClick={() => navigate(`/rma/${t.id}`)}>
+                    <div className="flex items-center justify-between">
+                      <div className="min-w-0 flex-1">
+                        <div className="text-sm font-semibold text-text-primary truncate">{t.customer_name || '—'}</div>
+                        <div className="text-[11px] text-text-muted mt-0.5 truncate">{[t.component_type, t.vendor].filter(Boolean).join(' • ')}</div>
+                      </div>
+                      <div className="flex flex-col items-end gap-1.5 ml-3">
+                        <span className="text-[10px] font-mono text-pink-500">{t.rma_number || '—'}</span>
+                        <StatusPill status={t.status} />
+                      </div>
+                    </div>
+                  </GlassCard>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* RIGHT COLUMN — Stats (on desktop these stack vertically on the right) */}
+        <div className="space-y-4 mt-5 lg:mt-0">
+          {/* RMA Stats */}
+          <div className="animate-fade-up">
+            <h3 className="text-[10px] tracking-[3px] font-semibold text-text-secondary uppercase mb-2 px-1">RMA — THIS MONTH</h3>
+            <div className="grid grid-cols-4 lg:grid-cols-2 gap-2">
+              <GlassCard hoverable className="p-3 text-center" onClick={() => navigate('/rma')}><div className="text-xl font-bold text-text-primary font-[family-name:var(--font-heading)]">{rmaThisMonth.length}</div><div className="text-[8px] tracking-[1.5px] text-text-muted mt-0.5">TOTAL</div></GlassCard>
+              <GlassCard hoverable className="p-3 text-center" onClick={() => navigate('/rma?status=Open')}><div className="text-xl font-bold text-pink-500 font-[family-name:var(--font-heading)]">{rmaOpen}</div><div className="text-[8px] tracking-[1.5px] text-text-muted mt-0.5">OPEN</div></GlassCard>
+              <GlassCard hoverable className="p-3 text-center" onClick={() => navigate('/rma?status=Closed')}><div className="text-xl font-bold text-emerald-500 font-[family-name:var(--font-heading)]">{rmaClosed}</div><div className="text-[8px] tracking-[1.5px] text-text-muted mt-0.5">CLOSED</div></GlassCard>
+              <GlassCard hoverable className="p-3 text-center" onClick={() => navigate('/rma?status=Ready+for+pick+up')}><div className="text-xl font-bold text-amber-500 font-[family-name:var(--font-heading)]">{rmaReady}</div><div className="text-[8px] tracking-[1.5px] text-text-muted mt-0.5">READY</div></GlassCard>
+            </div>
+          </div>
+
+          {/* Service Stats */}
+          <div className="animate-fade-up">
+            <h3 className="text-[10px] tracking-[3px] font-semibold text-text-secondary uppercase mb-2 px-1">SERVICE — THIS MONTH</h3>
+            <div className="grid grid-cols-4 lg:grid-cols-2 gap-2">
+              <GlassCard hoverable className="p-3 text-center" onClick={() => navigate('/service')}><div className="text-xl font-bold text-text-primary font-[family-name:var(--font-heading)]">{svcThisMonth.length}</div><div className="text-[8px] tracking-[1.5px] text-text-muted mt-0.5">TOTAL</div></GlassCard>
+              <GlassCard hoverable className="p-3 text-center" onClick={() => navigate('/service?status=Open')}><div className="text-xl font-bold text-violet-500 font-[family-name:var(--font-heading)]">{svcOpen}</div><div className="text-[8px] tracking-[1.5px] text-text-muted mt-0.5">OPEN</div></GlassCard>
+              <GlassCard hoverable className="p-3 text-center" onClick={() => navigate('/service?status=Closed')}><div className="text-xl font-bold text-emerald-500 font-[family-name:var(--font-heading)]">{svcClosed}</div><div className="text-[8px] tracking-[1.5px] text-text-muted mt-0.5">CLOSED</div></GlassCard>
+              <GlassCard hoverable className="p-3 text-center" onClick={() => navigate('/service?status=Pending')}><div className="text-xl font-bold text-orange-500 font-[family-name:var(--font-heading)]">{svcPending}</div><div className="text-[8px] tracking-[1.5px] text-text-muted mt-0.5">PENDING</div></GlassCard>
+            </div>
+          </div>
+
+          {/* Onsite Stats */}
+          <div className="animate-fade-up">
+            <h3 className="text-[10px] tracking-[3px] font-semibold text-text-secondary uppercase mb-2 px-1">ONSITE — THIS MONTH</h3>
+            <div className="grid grid-cols-3 lg:grid-cols-3 gap-2">
+              <GlassCard hoverable className="p-3 text-center" onClick={() => navigate('/service')}><div className="text-xl font-bold text-text-primary font-[family-name:var(--font-heading)]">{onThisMonth.length}</div><div className="text-[8px] tracking-[1.5px] text-text-muted mt-0.5">TOTAL</div></GlassCard>
+              <GlassCard hoverable className="p-3 text-center"><div className="text-xl font-bold text-orange-500 font-[family-name:var(--font-heading)]">{onOpen}</div><div className="text-[8px] tracking-[1.5px] text-text-muted mt-0.5">OPEN</div></GlassCard>
+              <GlassCard hoverable className="p-3 text-center"><div className="text-xl font-bold text-emerald-500 font-[family-name:var(--font-heading)]">{onClosed}</div><div className="text-[8px] tracking-[1.5px] text-text-muted mt-0.5">CLOSED</div></GlassCard>
+            </div>
+          </div>
+
+          {/* Remote Stats */}
+          <div className="animate-fade-up">
+            <h3 className="text-[10px] tracking-[3px] font-semibold text-text-secondary uppercase mb-2 px-1">REMOTE — THIS MONTH</h3>
+            <div className="grid grid-cols-3 lg:grid-cols-3 gap-2">
+              <GlassCard hoverable className="p-3 text-center" onClick={() => navigate('/service')}><div className="text-xl font-bold text-text-primary font-[family-name:var(--font-heading)]">{rmThisMonth.length}</div><div className="text-[8px] tracking-[1.5px] text-text-muted mt-0.5">TOTAL</div></GlassCard>
+              <GlassCard hoverable className="p-3 text-center"><div className="text-xl font-bold text-violet-500 font-[family-name:var(--font-heading)]">{rmOpen}</div><div className="text-[8px] tracking-[1.5px] text-text-muted mt-0.5">OPEN</div></GlassCard>
+              <GlassCard hoverable className="p-3 text-center"><div className="text-xl font-bold text-emerald-500 font-[family-name:var(--font-heading)]">{rmClosed}</div><div className="text-[8px] tracking-[1.5px] text-text-muted mt-0.5">CLOSED</div></GlassCard>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   )
