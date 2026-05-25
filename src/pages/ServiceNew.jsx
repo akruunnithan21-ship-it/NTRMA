@@ -265,7 +265,7 @@ export default function ServiceNew() {
           </button>
         </div>
 
-        <TextArea label="Reported Issues" value={form.reported_issues} onChange={e => update('reported_issues', e.target.value)} placeholder="Customer's reported problem" />
+        <TextArea label="Reported Issues / Service Expected" value={form.reported_issues} onChange={e => update('reported_issues', e.target.value)} placeholder="Customer's reported problem / expected service" />
         <TextArea label="Actions Taken" value={form.actions_taken} onChange={e => update('actions_taken', e.target.value)} placeholder="Steps taken (can be edited later)" />
       </GlassCard>
 
@@ -297,6 +297,19 @@ export default function ServiceNew() {
         </div>
 
         <TextArea label="Received Items" value={form.received_items} onChange={e => update('received_items', e.target.value)} placeholder="Items received from customer" />
+
+        {/* Photo upload for condition */}
+        <div className="space-y-1.5">
+          <label className="text-[11px] tracking-[2px] font-medium text-text-secondary uppercase">Condition Photos</label>
+          <label className="cursor-pointer block">
+            <input type="file" accept="image/*" capture="environment" className="hidden" onChange={() => showToast('Photo upload available after ticket creation', 'info')} />
+            <span className="inline-flex items-center gap-2 px-4 py-3 rounded-2xl bg-white/40 border border-black/10 text-[12px] tracking-wider text-pink-500 font-medium hover:bg-white/60 transition-all w-full justify-center">
+              <Camera size={16} /> ADD CONDITION PHOTO
+            </span>
+          </label>
+          <p className="text-[10px] text-text-muted">Document the condition of the received product</p>
+        </div>
+
         <TextArea label="Customer Comments / Remarks" value={form.customer_comments} onChange={e => update('customer_comments', e.target.value)} placeholder="Advice, notes, special instructions" />
       </GlassCard>
 

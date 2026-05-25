@@ -19,6 +19,9 @@ export default function Dashboard() {
   const open = tickets.filter(t => ['Pending', 'Open'].includes(t.status)).length
   const ready = tickets.filter(t => t.status === 'Ready for pick up').length
 
+  // We show open RMA separately
+  const openRma = open
+
   const searchResults = quickSearch.length > 0
     ? tickets.filter(t => {
         const hay = [t.rma_number, t.customer_name, t.serial_in, t.serial_out, t.vendor, t.component_type].join(' ').toLowerCase()
@@ -53,22 +56,28 @@ export default function Dashboard() {
       </div>
 
       {/* Stats grid */}
-      <div className="grid grid-cols-2 gap-3 animate-fade-up">
+      <div className="grid grid-cols-3 gap-3 animate-fade-up">
         <GlassCard className="p-4 text-center">
           <div className="text-2xl font-bold text-text-primary font-[family-name:var(--font-heading)]">{tickets.length}</div>
-          <div className="text-[10px] tracking-[2px] text-text-muted mt-1">TOTAL</div>
+          <div className="text-[9px] tracking-[2px] text-text-muted mt-1">TOTAL</div>
         </GlassCard>
         <GlassCard className="p-4 text-center">
-          <div className="text-2xl font-bold text-pink-500 font-[family-name:var(--font-heading)]">{open}</div>
-          <div className="text-[10px] tracking-[2px] text-text-muted mt-1">OPEN</div>
+          <div className="text-2xl font-bold text-pink-500 font-[family-name:var(--font-heading)]">{openRma}</div>
+          <div className="text-[9px] tracking-[2px] text-text-muted mt-1">RMA OPEN</div>
         </GlassCard>
+        <GlassCard className="p-4 text-center">
+          <div className="text-2xl font-bold text-violet-500 font-[family-name:var(--font-heading)]">0</div>
+          <div className="text-[9px] tracking-[2px] text-text-muted mt-1">SVC OPEN</div>
+        </GlassCard>
+      </div>
+      <div className="grid grid-cols-2 gap-3 animate-fade-up">
         <GlassCard className="p-4 text-center">
           <div className="text-2xl font-bold text-amber-500 font-[family-name:var(--font-heading)]">{ready}</div>
-          <div className="text-[10px] tracking-[2px] text-text-muted mt-1">READY</div>
+          <div className="text-[9px] tracking-[2px] text-text-muted mt-1">READY</div>
         </GlassCard>
         <GlassCard className="p-4 text-center">
           <div className="text-2xl font-bold text-emerald-500 font-[family-name:var(--font-heading)]">{rackItems.length}</div>
-          <div className="text-[10px] tracking-[2px] text-text-muted mt-1">IN RACK</div>
+          <div className="text-[9px] tracking-[2px] text-text-muted mt-1">IN RACK</div>
         </GlassCard>
       </div>
 
