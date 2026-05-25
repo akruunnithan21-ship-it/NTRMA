@@ -29,6 +29,7 @@ export default function ServiceNew() {
 
   const [form, setForm] = useState({
     customer_name: '',
+    customer_type: 'new',
     phone: '',
     email: '',
     assigned_engineer: '',
@@ -183,6 +184,16 @@ export default function ServiceNew() {
       <GlassCard className="p-5 space-y-4 animate-fade-up">
         <h3 className="text-[11px] tracking-[3px] font-semibold text-text-secondary uppercase">Customer Info</h3>
         <Input label="Customer Name" value={form.customer_name} onChange={e => update('customer_name', e.target.value)} placeholder="Full name" />
+        <div className="flex gap-3">
+          <button type="button" onClick={() => update('customer_type', 'existing')}
+            className={`flex-1 px-3 py-2 rounded-full text-[11px] tracking-wider font-medium border transition-all ${form.customer_type === 'existing' ? 'bg-pink-500 text-white border-pink-500' : 'bg-white/80 text-text-primary border-black/10 hover:border-pink-200'}`}>
+            Existing Customer
+          </button>
+          <button type="button" onClick={() => update('customer_type', 'new')}
+            className={`flex-1 px-3 py-2 rounded-full text-[11px] tracking-wider font-medium border transition-all ${form.customer_type === 'new' ? 'bg-pink-500 text-white border-pink-500' : 'bg-white/80 text-text-primary border-black/10 hover:border-pink-200'}`}>
+            New Customer
+          </button>
+        </div>
         <div className="grid grid-cols-2 gap-3">
           <Input label="Phone" type="tel" value={form.phone} onChange={e => update('phone', e.target.value)} placeholder="+91..." />
           <Input label="Email" type="email" value={form.email} onChange={e => update('email', e.target.value)} placeholder="email@..." />
