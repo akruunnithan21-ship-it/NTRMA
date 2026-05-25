@@ -149,7 +149,7 @@ export default function RmaNew() {
             placeholder="Full name"
           />
           {showSuggestions && filteredSuggestions.length > 0 && (
-            <div className="absolute top-full left-0 right-0 mt-1 z-50 bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border border-white/80 dark:border-gray-700 rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.1)] max-h-40 overflow-y-auto">
+            <div className="absolute top-full left-0 right-0 mt-1 z-50 bg-white border border-black/10 rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.1)] max-h-40 overflow-y-auto">
               <div className="p-1.5">
                 {filteredSuggestions.map(name => (
                   <button

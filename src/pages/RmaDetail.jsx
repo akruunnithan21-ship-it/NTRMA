@@ -215,7 +215,7 @@ export default function RmaDetail() {
         <div className="relative">
           <Input label="Customer Name" value={form.customer_name || ''} onChange={e => handleCustomerInput(e.target.value)} onFocus={() => setShowSuggestions((form.customer_name || '').length > 0)} onBlur={() => setTimeout(() => setShowSuggestions(false), 200)} placeholder="Full name" />
           {showSuggestions && filteredSuggestions.length > 0 && (
-            <div className="absolute top-full left-0 right-0 mt-1 z-50 bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border border-white/80 dark:border-gray-700 rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.1)] max-h-40 overflow-y-auto">
+            <div className="absolute top-full left-0 right-0 mt-1 z-50 bg-white border border-black/10 rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.1)] max-h-40 overflow-y-auto">
               <div className="p-1.5">
                 {filteredSuggestions.map(name => (
                   <button key={name} type="button" onMouseDown={() => { update('customer_name', name); setShowSuggestions(false) }} className="w-full text-left px-3 py-2 rounded-xl text-sm text-text-primary dark:text-white hover:bg-pink-50 dark:hover:bg-pink-900/30 transition-colors">{name}</button>
