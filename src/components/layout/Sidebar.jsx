@@ -34,7 +34,7 @@ export default function Sidebar({ open, onClose }) {
         <div className="h-full bg-white/80 backdrop-blur-xl border-r border-white/60 shadow-[20px_0_60px_rgba(0,0,0,0.08)] flex flex-col">
           <div className="flex items-center justify-between px-5 pt-6 pb-4 border-b border-black/[0.04]">
             <div className="flex items-center gap-3">
-              <img src="/assets/app-icon.svg" alt="Neo Tokyo" className="w-10 h-10 rounded-xl" />
+              <img src="/assets/nt-logo.png" alt="Neo Tokyo" className="w-10 h-10 object-contain" />
               <div>
                 <div className="text-sm font-bold tracking-[4px] text-pink-500 font-[family-name:var(--font-heading)]">NEO TOKYO</div>
                 <div className="text-[9px] tracking-[3px] text-text-muted">SERVICE / RMA</div>

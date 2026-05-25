@@ -32,9 +32,9 @@ export default function Splash({ onFinish }) {
         {/* Logo */}
         <div className="relative">
           <img
-            src="/assets/app-icon.svg"
+            src="/assets/nt-logo.png"
             alt="Neo Tokyo"
-            className="w-24 h-24 rounded-3xl shadow-[0_0_60px_rgba(231,1,70,0.3)] animate-[pulse-soft_2s_ease-in-out_infinite]"
+            className="w-24 h-24 object-contain drop-shadow-[0_0_30px_rgba(231,1,70,0.4)] animate-[pulse-soft_2s_ease-in-out_infinite]"
           />
         </div>
 

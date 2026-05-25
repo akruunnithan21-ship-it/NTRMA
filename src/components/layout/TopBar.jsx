@@ -14,9 +14,9 @@ export default function TopBar({ title, subtitle, onMenuClick }) {
 
         <div className="flex items-center gap-3 flex-1 min-w-0">
           <img
-            src="/assets/app-icon.svg"
+            src="/assets/nt-logo.png"
             alt="Neo Tokyo"
-            className="w-8 h-8 rounded-lg"
+            className="w-8 h-8 object-contain"
           />
           <div className="min-w-0">
             <h1 className="text-sm font-bold tracking-wider text-text-primary truncate font-[family-name:var(--font-heading)]">
