@@ -83,7 +83,10 @@ export default function RmaNew() {
     }
     setSaving(true)
     try {
-      const ticket = { ...form, id: newId() }
+      const cleanedForm = { ...form }
+      if (!cleanedForm.submission_date) cleanedForm.submission_date = null
+      if (!cleanedForm.delivery_date) cleanedForm.delivery_date = null
+      const ticket = { ...cleanedForm, id: newId() }
       const saved = await saveTicket(ticket)
       // Log initial status
       await db.addStatusChange(saved.id, null, 'Pending')

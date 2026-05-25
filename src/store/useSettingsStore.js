@@ -3,7 +3,7 @@ import * as db from '../lib/database'
 
 const DEFAULTS = {
   vendors: ['ASUS', 'Nvidia', 'Gigabyte', 'Deepcool', 'Corsair', 'GSkill', 'Adata', 'AMD', 'Intel', 'MSI', 'Cooler Master'],
-  submitTo: ['ACRO', 'Gigabyte', 'F1', 'Hizen'],
+  submitTo: ['ACRO', 'Gigabyte', 'F1', 'Kizen'],
   componentTypes: ['RAM', 'CPU', 'Motherboard', 'PSU', 'Cooler', 'Monitor', 'GPU', 'SSD', 'HDD', 'Cabinet', 'Keyboard', 'Mouse', 'Headset'],
   statuses: ['Pending', 'Open', 'Closed', 'Ready for pick up', 'Picked up', 'Pending install/delivery', 'Nil'],
   rackLocations: ['Rack A', 'Rack B', 'Rack C', 'Service Bench', 'Damaged Bin'],
