@@ -84,6 +84,8 @@ export default function Service() {
                   <div className="min-w-0 flex-1">
                     <div className="text-sm font-semibold text-text-primary truncate">{t.customer_name || '—'}</div>
                     <div className="text-[11px] text-text-muted mt-0.5 truncate">{[t.product_type, t.model, t.assigned_engineer].filter(Boolean).join(' • ')}</div>
+                    {t.phone && <div className="text-[10px] text-pink-400 mt-0.5">{t.phone}</div>}
+                    {t.phone && <div className="text-[10px] text-pink-400 mt-0.5">{t.phone}</div>}
                     {t.reported_issues && <div className="text-[11px] text-text-secondary mt-1 line-clamp-1">{t.reported_issues}</div>}
                   </div>
                   <div className="flex flex-col items-end gap-1.5 shrink-0">

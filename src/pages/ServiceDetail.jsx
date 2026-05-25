@@ -117,7 +117,25 @@ export default function ServiceDetail() {
       {/* Assignment */}
       <GlassCard className="p-5 space-y-4 animate-fade-up">
         <h3 className="text-[11px] tracking-[3px] font-semibold text-text-secondary uppercase">Assignment</h3>
-        <Select label="Assigned Service Engineer" options={engineers} value={form.assigned_engineer} onChange={v => update('assigned_engineer', v)} placeholder="Select engineer" />
+        <Select label="Assigned Service Engineer" options={engineers} value={form.assigned_engineer} onChange={v => {
+          if (v !== form.assigned_engineer && form.assigned_engineer) {
+            const history = form.assignment_history ? [...form.assignment_history] : []
+            history.push({ from: form.assigned_engineer, to: v, changed_at: new Date().toISOString() })
+            update('assignment_history', history)
+          }
+          update('assigned_engineer', v)
+        }} placeholder="Select engineer" />
+        {form.assignment_history && form.assignment_history.length > 0 && (
+          <div className="mt-2 space-y-1.5">
+            <p className="text-[10px] tracking-[2px] text-text-muted uppercase">Assignment History</p>
+            {form.assignment_history.map((h, i) => (
+              <div key={i} className="text-[11px] text-text-secondary">
+                <span className="text-pink-500">{h.from}</span> → <span className="text-emerald-500">{h.to}</span>
+                <span className="text-[9px] text-text-muted ml-2">{new Date(h.changed_at).toLocaleString('en-IN', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </GlassCard>
 
       {/* Purchase Info */}

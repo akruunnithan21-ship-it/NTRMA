@@ -42,3 +42,6 @@ CREATE INDEX IF NOT EXISTS idx_service_tickets_engineer ON service_tickets(assig
 -- ROW LEVEL SECURITY
 ALTER TABLE service_tickets ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Allow all on service_tickets" ON service_tickets FOR ALL USING (true) WITH CHECK (true);
+
+-- ADD ASSIGNMENT HISTORY COLUMN (run if table already exists)
+-- ALTER TABLE service_tickets ADD COLUMN IF NOT EXISTS assignment_history JSONB DEFAULT '[]';
