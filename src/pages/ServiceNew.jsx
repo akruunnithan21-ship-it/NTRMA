@@ -99,8 +99,12 @@ export default function ServiceNew() {
     setSaving(true)
     try {
       const ticketNumber = generateTicketNumber()
+      // Convert empty date strings to null for Supabase
+      const cleanedForm = { ...form }
+      if (!cleanedForm.date_of_purchase) cleanedForm.date_of_purchase = null
+      if (!cleanedForm.received_date) cleanedForm.received_date = null
       const serviceTicket = {
-        ...form,
+        ...cleanedForm,
         id: newId(),
         ticket_number: ticketNumber,
         custom_status: form.call_status === 'Others' ? customStatus : '',
