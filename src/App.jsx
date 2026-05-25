@@ -11,6 +11,7 @@ import RmaDetail from './pages/RmaDetail'
 import Rack from './pages/Rack'
 import Service from './pages/Service'
 import ServiceNew from './pages/ServiceNew'
+import ServiceDetail from './pages/ServiceDetail'
 import Warranty from './pages/Warranty'
 import Settings from './pages/Settings'
 import Account from './pages/Account'
@@ -40,6 +41,7 @@ export default function App() {
           <Route path="/rack" element={<Rack />} />
           <Route path="/service" element={<Service />} />
           <Route path="/service/new" element={<ServiceNew />} />
+          <Route path="/service/:id" element={<ServiceDetail />} />
           <Route path="/warranty" element={<Warranty />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/account" element={<Account />} />
