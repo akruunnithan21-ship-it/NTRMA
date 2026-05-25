@@ -185,7 +185,7 @@ body::after {
 
 /* ---------- Section navigator (Service / RMA / Warranty) ---------- */
 .section-nav {
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
   margin: 6px 0 16px;
 }
 .sn-card {
@@ -559,4 +559,202 @@ body::after {
 /* ---------- Responsive ---------- */
 @media (min-width: 720px) {
   #app { padding-top: 8px; }
+}
+
+
+/* ---------- Service Module Styles ---------- */
+.service-menu-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.service-menu-card {
+  position: relative;
+  padding: 22px 14px 18px;
+  border-radius: var(--radius);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(var(--blur)) saturate(140%);
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(140%);
+  text-align: center;
+  cursor: pointer;
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 220ms ease;
+  overflow: hidden;
+}
+.service-menu-card:active { transform: scale(0.97); }
+.service-menu-card:hover {
+  border-color: var(--glass-border-bright);
+  box-shadow: 0 10px 30px rgba(231,0,119,0.18);
+}
+.service-menu-card .smc-icon {
+  font-size: 28px;
+  margin-bottom: 8px;
+  display: block;
+}
+.service-menu-card .smc-label {
+  font-weight: 600;
+  letter-spacing: 2px;
+  font-size: 11px;
+  color: var(--text);
+}
+.service-menu-card .smc-sub {
+  font-size: 10px;
+  color: var(--text-dim);
+  letter-spacing: 1px;
+  margin-top: 4px;
+}
+
+/* Type-specific card accents */
+.st-service-card {
+  border-color: rgba(100, 200, 255, 0.25);
+}
+.st-service-card:hover {
+  border-color: rgba(100, 200, 255, 0.5);
+  box-shadow: 0 10px 30px rgba(100, 200, 255, 0.15);
+}
+.st-onsite-card {
+  border-color: rgba(255, 180, 60, 0.25);
+}
+.st-onsite-card:hover {
+  border-color: rgba(255, 180, 60, 0.5);
+  box-shadow: 0 10px 30px rgba(255, 180, 60, 0.15);
+}
+.st-remote-card {
+  border-color: rgba(160, 120, 255, 0.25);
+}
+.st-remote-card:hover {
+  border-color: rgba(160, 120, 255, 0.5);
+  box-shadow: 0 10px 30px rgba(160, 120, 255, 0.15);
+}
+
+/* Service type pills - differentiated colors */
+.service-type-pill.st-service {
+  border-color: rgba(100, 200, 255, 0.5);
+  color: #8ee0ff;
+  background: rgba(100, 200, 255, 0.08);
+}
+.service-type-pill.st-service .dot {
+  background: #64c8ff;
+  box-shadow: 0 0 10px #64c8ff;
+}
+.service-type-pill.st-onsite {
+  border-color: rgba(255, 180, 60, 0.5);
+  color: #ffd080;
+  background: rgba(255, 180, 60, 0.08);
+}
+.service-type-pill.st-onsite .dot {
+  background: #ffb43c;
+  box-shadow: 0 0 10px #ffb43c;
+}
+.service-type-pill.st-remote {
+  border-color: rgba(160, 120, 255, 0.5);
+  color: #c8a8ff;
+  background: rgba(160, 120, 255, 0.08);
+}
+.service-type-pill.st-remote .dot {
+  background: #a078ff;
+  box-shadow: 0 0 10px #a078ff;
+}
+
+/* Service list item - slight left border accent */
+.service-list-item {
+  border-left: 3px solid transparent;
+}
+.service-list-item:has(.st-service) {
+  border-left-color: #64c8ff;
+}
+.service-list-item:has(.st-onsite) {
+  border-left-color: #ffb43c;
+}
+.service-list-item:has(.st-remote) {
+  border-left-color: #a078ff;
+}
+
+/* Dashboard styles */
+.dashboard-card {
+  margin-bottom: 12px;
+}
+.dash-card-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  font-size: 12px;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.dash-icon {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  font-size: 16px;
+}
+.dash-icon.rma-icon {
+  background: rgba(231, 0, 119, 0.12);
+  border: 1px solid rgba(231, 0, 119, 0.35);
+  color: var(--pink);
+}
+.dash-icon.service-icon {
+  background: rgba(100, 200, 255, 0.12);
+  border: 1px solid rgba(100, 200, 255, 0.35);
+  color: #64c8ff;
+}
+.dash-icon.onsite-icon {
+  background: rgba(255, 180, 60, 0.12);
+  border: 1px solid rgba(255, 180, 60, 0.35);
+  color: #ffb43c;
+}
+.dash-icon.remote-icon {
+  background: rgba(160, 120, 255, 0.12);
+  border: 1px solid rgba(160, 120, 255, 0.35);
+  color: #a078ff;
+}
+
+/* Responsive adjustments for 4 nav cards */
+@media (max-width: 480px) {
+  .section-nav {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+  }
+  .sn-card {
+    padding: 14px 8px 12px;
+  }
+  .sn-card .lbl {
+    font-size: 10px;
+    letter-spacing: 1.5px;
+  }
+  .sn-card .ico {
+    font-size: 18px;
+  }
+  .sn-card .stat {
+    display: none;
+  }
+  .service-menu-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .service-menu-card {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto auto;
+    text-align: left;
+    padding: 14px 16px;
+    gap: 0 12px;
+  }
+  .service-menu-card .smc-icon {
+    grid-row: span 2;
+    align-self: center;
+    margin-bottom: 0;
+  }
+  .service-menu-card .smc-label {
+    align-self: end;
+  }
+  .service-menu-card .smc-sub {
+    margin-top: 2px;
+  }
 }

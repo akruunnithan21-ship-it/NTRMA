@@ -28,6 +28,10 @@ window.NTSettings = (function () {
       title: 'RACK LOCATIONS', icon: '▤', key: 'rackLocations',
       placeholder: 'Add location (e.g. Rack D)'
     }));
+    grid.appendChild(await listCard({
+      title: 'TECHNICIANS', icon: '👤', key: 'technicians',
+      placeholder: 'Add technician name'
+    }));
 
     // Stats card
     grid.appendChild(await statsCard());
@@ -87,6 +91,9 @@ window.NTSettings = (function () {
   async function statsCard() {
     const tickets = await NTDB.getTickets();
     const rack = await NTDB.getRack();
+    const serviceTickets = await NTDB.getServiceTickets();
+    const onsiteTickets = await NTDB.getOnsiteTickets();
+    const remoteTickets = await NTDB.getRemoteTickets();
     const open = tickets.filter(t => ['Pending', 'Open'].includes(t.status)).length;
     const ready = tickets.filter(t => t.status === 'Ready for pick up').length;
     const closed = tickets.filter(t => t.status === 'Closed').length;
@@ -94,15 +101,20 @@ window.NTSettings = (function () {
     const card = el('div', { class: 'settings-card' });
     card.appendChild(el('div', { class: 'h' }, el('span', { class: 'ico' }, '∑'), 'AT A GLANCE'));
     const grid = el('div', { class: 'row thirds', style: 'margin-top: 8px;' });
-    grid.appendChild(stat('Tickets', tickets.length));
-    grid.appendChild(stat('Open', open));
-    grid.appendChild(stat('Ready', ready));
+    grid.appendChild(stat('RMA Total', tickets.length));
+    grid.appendChild(stat('RMA Open', open));
+    grid.appendChild(stat('RMA Ready', ready));
     card.appendChild(grid);
     const grid2 = el('div', { class: 'row thirds', style: 'margin-top: 8px;' });
-    grid2.appendChild(stat('Closed', closed));
-    grid2.appendChild(stat('In Hand', rack.filter(r => r.state === 'IN_HAND').length));
-    grid2.appendChild(stat('At Rack', rack.filter(r => r.state === 'AT_RACK').length));
+    grid2.appendChild(stat('Service', serviceTickets.length));
+    grid2.appendChild(stat('Onsite', onsiteTickets.length));
+    grid2.appendChild(stat('Remote', remoteTickets.length));
     card.appendChild(grid2);
+    const grid3 = el('div', { class: 'row thirds', style: 'margin-top: 8px;' });
+    grid3.appendChild(stat('In Hand', rack.filter(r => r.state === 'IN_HAND').length));
+    grid3.appendChild(stat('At Rack', rack.filter(r => r.state === 'AT_RACK').length));
+    grid3.appendChild(stat('RMA Closed', closed));
+    card.appendChild(grid3);
     return card;
   }
   function stat(label, value) {

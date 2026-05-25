@@ -1,11 +1,11 @@
 /* =========================================================
    Local persistence layer (IndexedDB via idb-style wrapper)
-   Stores: tickets, rack, settings (vendors / submitTo / componentTypes)
+   Stores: tickets, rack, settings, serviceTickets, onsiteTickets, remoteTickets
    ========================================================= */
 window.NTDB = (function () {
   const DB_NAME = 'ntrma-db';
-  const DB_VERSION = 1;
-  const STORES = ['tickets', 'rack', 'settings'];
+  const DB_VERSION = 2;
+  const STORES = ['tickets', 'rack', 'settings', 'serviceTickets', 'onsiteTickets', 'remoteTickets'];
 
   let _db = null;
 
@@ -26,6 +26,24 @@ window.NTDB = (function () {
         }
         if (!db.objectStoreNames.contains('settings')) {
           db.createObjectStore('settings', { keyPath: 'key' });
+        }
+        if (!db.objectStoreNames.contains('serviceTickets')) {
+          const s = db.createObjectStore('serviceTickets', { keyPath: 'id' });
+          s.createIndex('ticketNumber', 'ticketNumber', { unique: false });
+          s.createIndex('status', 'status', { unique: false });
+          s.createIndex('createdAt', 'createdAt', { unique: false });
+        }
+        if (!db.objectStoreNames.contains('onsiteTickets')) {
+          const s = db.createObjectStore('onsiteTickets', { keyPath: 'id' });
+          s.createIndex('ticketNumber', 'ticketNumber', { unique: false });
+          s.createIndex('status', 'status', { unique: false });
+          s.createIndex('createdAt', 'createdAt', { unique: false });
+        }
+        if (!db.objectStoreNames.contains('remoteTickets')) {
+          const s = db.createObjectStore('remoteTickets', { keyPath: 'id' });
+          s.createIndex('ticketNumber', 'ticketNumber', { unique: false });
+          s.createIndex('status', 'status', { unique: false });
+          s.createIndex('createdAt', 'createdAt', { unique: false });
         }
       };
       req.onsuccess = () => { _db = req.result; resolve(_db); };
@@ -72,6 +90,10 @@ window.NTDB = (function () {
     submitTo: ['ACRO', 'Gigabyte', 'F1', 'Hizen'],
     componentTypes: ['RAM', 'CPU', 'Motherboard', 'PSU', 'Cooler', 'Monitor', 'GPU', 'SSD', 'HDD', 'Cabinet', 'Keyboard', 'Mouse', 'Headset'],
     statuses: ['Pending', 'Open', 'Closed', 'Ready for pick up', 'Picked up', 'Pending install/delivery', 'Nil'],
+    serviceStatuses: ['Open', 'Closed', 'Pending', 'Requires RMA'],
+    onsiteStatuses: ['Open', 'Closed', 'Pending', 'Requires In-Store Service', 'Requires RMA'],
+    remoteStatuses: ['Open', 'Closed', 'Pending', 'Requires In-Store Service', 'Requires RMA'],
+    technicians: ['Akru', 'Jithin', 'Vishnu', 'Amal', 'Unassigned'],
     rackLocations: ['Rack A', 'Rack B', 'Rack C', 'Service Bench', 'Damaged Bin']
   };
 
@@ -102,9 +124,10 @@ window.NTDB = (function () {
     return next;
   }
 
-  // ---- Tickets ----
+  // ---- ID generators ----
   function newId() { return 't_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 7); }
 
+  // ---- RMA Tickets ----
   async function saveTicket(t) {
     if (!t.id) t.id = newId();
     if (!t.createdAt) t.createdAt = Date.now();
@@ -115,6 +138,42 @@ window.NTDB = (function () {
   function getTicket(id) { return get('tickets', id); }
   function getTickets() { return getAll('tickets').then(list => list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))); }
   function deleteTicket(id) { return del('tickets', id); }
+
+  // ---- Service Tickets ----
+  async function saveServiceTicket(t) {
+    if (!t.id) t.id = 'sv_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 7);
+    if (!t.createdAt) t.createdAt = Date.now();
+    t.updatedAt = Date.now();
+    await put('serviceTickets', t);
+    return t;
+  }
+  function getServiceTicket(id) { return get('serviceTickets', id); }
+  function getServiceTickets() { return getAll('serviceTickets').then(list => list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))); }
+  function deleteServiceTicket(id) { return del('serviceTickets', id); }
+
+  // ---- Onsite Tickets ----
+  async function saveOnsiteTicket(t) {
+    if (!t.id) t.id = 'on_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 7);
+    if (!t.createdAt) t.createdAt = Date.now();
+    t.updatedAt = Date.now();
+    await put('onsiteTickets', t);
+    return t;
+  }
+  function getOnsiteTicket(id) { return get('onsiteTickets', id); }
+  function getOnsiteTickets() { return getAll('onsiteTickets').then(list => list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))); }
+  function deleteOnsiteTicket(id) { return del('onsiteTickets', id); }
+
+  // ---- Remote Session Tickets ----
+  async function saveRemoteTicket(t) {
+    if (!t.id) t.id = 'rm_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 7);
+    if (!t.createdAt) t.createdAt = Date.now();
+    t.updatedAt = Date.now();
+    await put('remoteTickets', t);
+    return t;
+  }
+  function getRemoteTicket(id) { return get('remoteTickets', id); }
+  function getRemoteTickets() { return getAll('remoteTickets').then(list => list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))); }
+  function deleteRemoteTicket(id) { return del('remoteTickets', id); }
 
   // ---- Rack ----
   async function saveRack(item) {
@@ -130,16 +189,16 @@ window.NTDB = (function () {
 
   // ---- Backup / restore ----
   async function exportAll() {
-    const [tickets, rack, vendors, submitTo, componentTypes, rackLocations] = await Promise.all([
-      getTickets(), getRack(),
-      getSetting('vendors'), getSetting('submitTo'), getSetting('componentTypes'), getSetting('rackLocations')
+    const [tickets, rack, serviceTickets, onsiteTickets, remoteTickets, vendors, submitTo, componentTypes, rackLocations, technicians] = await Promise.all([
+      getTickets(), getRack(), getServiceTickets(), getOnsiteTickets(), getRemoteTickets(),
+      getSetting('vendors'), getSetting('submitTo'), getSetting('componentTypes'), getSetting('rackLocations'), getSetting('technicians')
     ]);
     return {
       app: 'NeoTokyoRMA',
-      version: 1,
+      version: 2,
       exportedAt: new Date().toISOString(),
-      tickets, rack,
-      settings: { vendors, submitTo, componentTypes, rackLocations }
+      tickets, rack, serviceTickets, onsiteTickets, remoteTickets,
+      settings: { vendors, submitTo, componentTypes, rackLocations, technicians }
     };
   }
 
@@ -150,6 +209,15 @@ window.NTDB = (function () {
     }
     if (Array.isArray(payload.rack)) {
       for (const r of payload.rack) await put('rack', r);
+    }
+    if (Array.isArray(payload.serviceTickets)) {
+      for (const t of payload.serviceTickets) await put('serviceTickets', t);
+    }
+    if (Array.isArray(payload.onsiteTickets)) {
+      for (const t of payload.onsiteTickets) await put('onsiteTickets', t);
+    }
+    if (Array.isArray(payload.remoteTickets)) {
+      for (const t of payload.remoteTickets) await put('remoteTickets', t);
     }
     if (payload.settings) {
       for (const k of Object.keys(payload.settings)) {
@@ -163,6 +231,9 @@ window.NTDB = (function () {
     open, newId,
     getSetting, setSetting, addSettingItem, removeSettingItem, DEFAULTS,
     saveTicket, getTicket, getTickets, deleteTicket,
+    saveServiceTicket, getServiceTicket, getServiceTickets, deleteServiceTicket,
+    saveOnsiteTicket, getOnsiteTicket, getOnsiteTickets, deleteOnsiteTicket,
+    saveRemoteTicket, getRemoteTicket, getRemoteTickets, deleteRemoteTicket,
     saveRack, getRack, getRackItem, deleteRackItem,
     exportAll, restoreAll
   };
