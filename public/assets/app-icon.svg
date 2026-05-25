@@ -1,10 +1,19 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <!-- Red background -->
-  <rect width="512" height="512" rx="96" fill="#D6002A"/>
-  <!-- White circle (thick, solid) -->
-  <circle cx="256" cy="256" r="155" fill="none" stroke="white" stroke-width="40"/>
-  <!-- White triangle (solid filled, pointing up) -->
-  <path d="M256 105 L380 365 L132 365 Z" fill="white"/>
-  <!-- Red triangle cutout at bottom (creates the inner gap/arrow shape) -->
-  <path d="M256 240 L320 365 L192 365 Z" fill="#D6002A"/>
+  <defs>
+    <linearGradient id="ntGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF0066"/>
+      <stop offset="50%" stop-color="#E70146"/>
+      <stop offset="100%" stop-color="#CC0040"/>
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="512" height="512" rx="96" fill="white"/>
+  <!-- Outer circle with breaks (two arcs) -->
+  <path d="M256 76 A180 180 0 0 1 430 220" fill="none" stroke="url(#ntGrad)" stroke-width="36" stroke-linecap="round"/>
+  <path d="M430 290 A180 180 0 0 1 160 420" fill="none" stroke="url(#ntGrad)" stroke-width="36" stroke-linecap="round"/>
+  <path d="M120 390 A180 180 0 0 1 256 76" fill="none" stroke="url(#ntGrad)" stroke-width="36" stroke-linecap="round"/>
+  <!-- Solid triangle pointing up -->
+  <polygon points="256,110 395,370 117,370" fill="url(#ntGrad)"/>
+  <!-- White cutout triangle at bottom -->
+  <polygon points="256,260 330,370 182,370" fill="white"/>
 </svg>

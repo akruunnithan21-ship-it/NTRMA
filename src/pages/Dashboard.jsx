@@ -67,7 +67,7 @@ export default function Dashboard() {
         </GlassCard>
         <GlassCard className="p-4 text-center">
           <div className="text-2xl font-bold text-violet-500 font-[family-name:var(--font-heading)]">0</div>
-          <div className="text-[9px] tracking-[2px] text-text-muted mt-1">SVC OPEN</div>
+          <div className="text-[9px] tracking-[2px] text-text-muted mt-1">SERVICE OPEN</div>
         </GlassCard>
       </div>
       <div className="grid grid-cols-2 gap-3 animate-fade-up">
