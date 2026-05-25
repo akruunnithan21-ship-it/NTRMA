@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Plus, ArrowUpDown, RefreshCw } from 'lucide-react'
 import SearchBar from '../components/ui/SearchBar'
 import GlassCard from '../components/ui/GlassCard'
@@ -14,10 +14,11 @@ import { showToast } from '../components/ui/Toast'
 
 export default function RmaList() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { tickets, loading, fetchTickets, saveTicket } = useTicketStore()
   const { getSetting } = useSettingsStore()
   const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState('All')
+  const [statusFilter, setStatusFilter] = useState(searchParams.get('status') || 'All')
   const [sortBy, setSortBy] = useState('newest')
   const [showSort, setShowSort] = useState(false)
   const [quickStatusTicket, setQuickStatusTicket] = useState(null)

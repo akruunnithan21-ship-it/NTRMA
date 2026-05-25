@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Plus, MapPin, Monitor } from 'lucide-react'
 import GlassCard from '../components/ui/GlassCard'
 import SearchBar from '../components/ui/SearchBar'
@@ -9,9 +9,11 @@ import * as db from '../lib/database'
 
 export default function Service() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const [tickets, setTickets] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
+  const statusFromUrl = searchParams.get('status')
 
   useEffect(() => { loadTickets() }, [])
 
@@ -25,6 +27,11 @@ export default function Service() {
   }
 
   const filtered = tickets.filter(t => {
+    if (statusFromUrl) {
+      if (statusFromUrl === 'Pending') {
+        if (['Open', 'Closed'].includes(t.call_status)) return false
+      } else if (t.call_status !== statusFromUrl) return false
+    }
     if (!search) return true
     const hay = [t.ticket_number, t.customer_name, t.phone, t.model, t.serial_number, t.assigned_engineer, t.reported_issues]
       .join(' ').toLowerCase()
