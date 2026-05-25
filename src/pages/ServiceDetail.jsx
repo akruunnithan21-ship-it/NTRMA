@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Save, Trash2, ArrowLeft, Search, Camera, Plus } from 'lucide-react'
+import { Save, Trash2, ArrowLeft, Search, Camera, Plus, Printer } from 'lucide-react'
 import GlassCard from '../components/ui/GlassCard'
 import Input from '../components/ui/Input'
 import TextArea from '../components/ui/TextArea'
@@ -10,6 +10,7 @@ import { ConfirmModal } from '../components/ui/Modal'
 import { showToast } from '../components/ui/Toast'
 import useSettingsStore from '../store/useSettingsStore'
 import { vibrate } from '../lib/haptics'
+import { printTicket } from '../lib/printTicket'
 import * as db from '../lib/database'
 
 const OS_OPTIONS = ['Windows', 'Linux', 'macOS', 'Dual Boot']
@@ -202,6 +203,10 @@ export default function ServiceDetail() {
           <Trash2 size={16} /> DELETE
         </Button>
       </div>
+
+      <Button variant="ghost" className="w-full animate-fade-up" onClick={() => printTicket(form, 'SERVICE')}>
+        <Printer size={16} /> PRINT TICKET
+      </Button>
 
       <ConfirmModal open={showDelete} onClose={() => setShowDelete(false)} onConfirm={handleDelete} title="Delete Service Ticket" message={`Delete ${form.ticket_number}? This cannot be undone.`} confirmText="Delete" danger />
     </div>

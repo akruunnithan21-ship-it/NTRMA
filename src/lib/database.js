@@ -252,3 +252,95 @@ export async function deleteServiceTicket(id) {
   if (error) throw error
   return true
 }
+
+
+
+// ============================
+// ONSITE TICKETS
+// ============================
+export async function getOnsiteTickets() {
+  const { data, error } = await supabase
+    .from('onsite_tickets')
+    .select('*')
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return data || []
+}
+
+export async function getOnsiteTicket(id) {
+  const { data, error } = await supabase
+    .from('onsite_tickets')
+    .select('*')
+    .eq('id', id)
+    .single()
+  if (error) throw error
+  return data
+}
+
+export async function saveOnsiteTicket(ticket) {
+  const now = new Date().toISOString()
+  const payload = { ...ticket, updated_at: now }
+  if (!payload.created_at) payload.created_at = now
+
+  const { data, error } = await supabase
+    .from('onsite_tickets')
+    .upsert(payload)
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+export async function deleteOnsiteTicket(id) {
+  const { error } = await supabase
+    .from('onsite_tickets')
+    .delete()
+    .eq('id', id)
+  if (error) throw error
+  return true
+}
+
+// ============================
+// REMOTE SESSION TICKETS
+// ============================
+export async function getRemoteTickets() {
+  const { data, error } = await supabase
+    .from('remote_tickets')
+    .select('*')
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return data || []
+}
+
+export async function getRemoteTicket(id) {
+  const { data, error } = await supabase
+    .from('remote_tickets')
+    .select('*')
+    .eq('id', id)
+    .single()
+  if (error) throw error
+  return data
+}
+
+export async function saveRemoteTicket(ticket) {
+  const now = new Date().toISOString()
+  const payload = { ...ticket, updated_at: now }
+  if (!payload.created_at) payload.created_at = now
+
+  const { data, error } = await supabase
+    .from('remote_tickets')
+    .upsert(payload)
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+export async function deleteRemoteTicket(id) {
+  const { error } = await supabase
+    .from('remote_tickets')
+    .delete()
+    .eq('id', id)
+  if (error) throw error
+  return true
+}

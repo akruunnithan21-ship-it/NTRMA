@@ -13,11 +13,22 @@ export default function Dashboard() {
   const { tickets, fetchTickets } = useTicketStore()
   const [quickSearch, setQuickSearch] = useState('')
   const [serviceTickets, setServiceTickets] = useState([])
+  const [onsiteTickets, setOnsiteTickets] = useState([])
+  const [remoteTickets, setRemoteTickets] = useState([])
 
   useEffect(() => { fetchTickets(); loadServiceTickets() }, [])
 
   async function loadServiceTickets() {
-    try { const data = await db.getServiceTickets(); setServiceTickets(data) } catch (e) {}
+    try {
+      const [svc, onsite, remote] = await Promise.all([
+        db.getServiceTickets(),
+        db.getOnsiteTickets(),
+        db.getRemoteTickets(),
+      ])
+      setServiceTickets(svc)
+      setOnsiteTickets(onsite)
+      setRemoteTickets(remote)
+    } catch (e) {}
   }
 
   const now = new Date()
@@ -32,6 +43,14 @@ export default function Dashboard() {
   const svcOpen = svcThisMonth.filter(t => t.call_status === 'Open').length
   const svcClosed = svcThisMonth.filter(t => t.call_status === 'Closed').length
   const svcPending = svcThisMonth.filter(t => !['Open', 'Closed'].includes(t.call_status)).length
+
+  const onThisMonth = onsiteTickets.filter(t => t.created_at >= thisMonthStart)
+  const onOpen = onThisMonth.filter(t => t.status === 'Open' || t.status === 'Pending').length
+  const onClosed = onThisMonth.filter(t => t.status === 'Closed').length
+
+  const rmThisMonth = remoteTickets.filter(t => t.created_at >= thisMonthStart)
+  const rmOpen = rmThisMonth.filter(t => t.status === 'Open' || t.status === 'Pending').length
+  const rmClosed = rmThisMonth.filter(t => t.status === 'Closed').length
 
   const searchResults = quickSearch.length > 0
     ? tickets.filter(t => [t.rma_number, t.customer_name, t.serial_in, t.serial_out, t.vendor, t.component_type].join(' ').toLowerCase().includes(quickSearch.toLowerCase())).slice(0, 5)
@@ -78,6 +97,24 @@ export default function Dashboard() {
           <GlassCard hoverable className="p-3 text-center" onClick={() => navigate('/service?status=Open')}><div className="text-xl font-bold text-violet-500 font-[family-name:var(--font-heading)]">{svcOpen}</div><div className="text-[8px] tracking-[1.5px] text-text-muted mt-0.5">OPEN</div></GlassCard>
           <GlassCard hoverable className="p-3 text-center" onClick={() => navigate('/service?status=Closed')}><div className="text-xl font-bold text-emerald-500 font-[family-name:var(--font-heading)]">{svcClosed}</div><div className="text-[8px] tracking-[1.5px] text-text-muted mt-0.5">CLOSED</div></GlassCard>
           <GlassCard hoverable className="p-3 text-center" onClick={() => navigate('/service?status=Pending')}><div className="text-xl font-bold text-orange-500 font-[family-name:var(--font-heading)]">{svcPending}</div><div className="text-[8px] tracking-[1.5px] text-text-muted mt-0.5">PENDING</div></GlassCard>
+        </div>
+      </div>
+
+      <div className="animate-fade-up">
+        <h3 className="text-[10px] tracking-[3px] font-semibold text-text-secondary uppercase mb-2 px-1">ONSITE — THIS MONTH</h3>
+        <div className="grid grid-cols-3 gap-2">
+          <GlassCard hoverable className="p-3 text-center" onClick={() => navigate('/service')}><div className="text-xl font-bold text-text-primary font-[family-name:var(--font-heading)]">{onThisMonth.length}</div><div className="text-[8px] tracking-[1.5px] text-text-muted mt-0.5">TOTAL</div></GlassCard>
+          <GlassCard hoverable className="p-3 text-center"><div className="text-xl font-bold text-orange-500 font-[family-name:var(--font-heading)]">{onOpen}</div><div className="text-[8px] tracking-[1.5px] text-text-muted mt-0.5">OPEN</div></GlassCard>
+          <GlassCard hoverable className="p-3 text-center"><div className="text-xl font-bold text-emerald-500 font-[family-name:var(--font-heading)]">{onClosed}</div><div className="text-[8px] tracking-[1.5px] text-text-muted mt-0.5">CLOSED</div></GlassCard>
+        </div>
+      </div>
+
+      <div className="animate-fade-up">
+        <h3 className="text-[10px] tracking-[3px] font-semibold text-text-secondary uppercase mb-2 px-1">REMOTE — THIS MONTH</h3>
+        <div className="grid grid-cols-3 gap-2">
+          <GlassCard hoverable className="p-3 text-center" onClick={() => navigate('/service')}><div className="text-xl font-bold text-text-primary font-[family-name:var(--font-heading)]">{rmThisMonth.length}</div><div className="text-[8px] tracking-[1.5px] text-text-muted mt-0.5">TOTAL</div></GlassCard>
+          <GlassCard hoverable className="p-3 text-center"><div className="text-xl font-bold text-violet-500 font-[family-name:var(--font-heading)]">{rmOpen}</div><div className="text-[8px] tracking-[1.5px] text-text-muted mt-0.5">OPEN</div></GlassCard>
+          <GlassCard hoverable className="p-3 text-center"><div className="text-xl font-bold text-emerald-500 font-[family-name:var(--font-heading)]">{rmClosed}</div><div className="text-[8px] tracking-[1.5px] text-text-muted mt-0.5">CLOSED</div></GlassCard>
         </div>
       </div>
 

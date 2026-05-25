@@ -4,13 +4,15 @@ import { Plus, MapPin, Monitor } from 'lucide-react'
 import GlassCard from '../components/ui/GlassCard'
 import SearchBar from '../components/ui/SearchBar'
 import { showToast } from '../components/ui/Toast'
-import { formatDate } from '../lib/helpers'
+import { formatDate, formatDateTime } from '../lib/helpers'
 import * as db from '../lib/database'
 
 export default function Service() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const [tickets, setTickets] = useState([])
+  const [onsiteTickets, setOnsiteTickets] = useState([])
+  const [remoteTickets, setRemoteTickets] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const statusFromUrl = searchParams.get('status')
@@ -20,8 +22,14 @@ export default function Service() {
   async function loadTickets() {
     setLoading(true)
     try {
-      const data = await db.getServiceTickets()
-      setTickets(data)
+      const [svc, onsite, remote] = await Promise.all([
+        db.getServiceTickets(),
+        db.getOnsiteTickets(),
+        db.getRemoteTickets(),
+      ])
+      setTickets(svc)
+      setOnsiteTickets(onsite)
+      setRemoteTickets(remote)
     } catch (err) { /* ignore */ }
     finally { setLoading(false) }
   }
@@ -55,24 +63,24 @@ export default function Service() {
             </div>
           </div>
         </GlassCard>
-        <GlassCard hoverable className="p-5" onClick={() => showToast('Onsite tickets coming soon', 'info')}>
+        <GlassCard hoverable className="p-5" onClick={() => navigate('/onsite/new')}>
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-2xl bg-ice-100 border border-ice-200 flex items-center justify-center"><MapPin size={22} className="text-ice-500" /></div>
             <div className="flex-1">
               <h3 className="text-sm font-semibold text-text-primary tracking-wider">ONSITE TICKET</h3>
               <p className="text-[11px] text-text-muted mt-0.5">Customer location service</p>
             </div>
-            <span className="text-[9px] tracking-wider px-2 py-0.5 rounded-full bg-ice-100 text-ice-500 border border-ice-200 font-medium">SOON</span>
+            <span className="text-[9px] tracking-wider px-2 py-0.5 rounded-full bg-orange-50 text-orange-500 border border-orange-200 font-medium">LIVE</span>
           </div>
         </GlassCard>
-        <GlassCard hoverable className="p-5" onClick={() => showToast('Remote sessions coming soon', 'info')}>
+        <GlassCard hoverable className="p-5" onClick={() => navigate('/remote/new')}>
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-2xl bg-violet-50 border border-violet-200 flex items-center justify-center"><Monitor size={22} className="text-violet-500" /></div>
             <div className="flex-1">
               <h3 className="text-sm font-semibold text-text-primary tracking-wider">REMOTE SESSION</h3>
               <p className="text-[11px] text-text-muted mt-0.5">Remote desktop support</p>
             </div>
-            <span className="text-[9px] tracking-wider px-2 py-0.5 rounded-full bg-violet-50 text-violet-500 border border-violet-200 font-medium">SOON</span>
+            <span className="text-[9px] tracking-wider px-2 py-0.5 rounded-full bg-violet-50 text-violet-500 border border-violet-200 font-medium">LIVE</span>
           </div>
         </GlassCard>
       </div>
@@ -96,11 +104,78 @@ export default function Service() {
                   </div>
                   <div className="flex flex-col items-end gap-1.5 shrink-0">
                     <span className="text-[10px] font-mono text-pink-500 font-medium">{t.ticket_number}</span>
+                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] tracking-wider font-medium border bg-pink-50 border-pink-200 text-pink-600`}>
+                      <span className="w-1 h-1 rounded-full bg-pink-400" />SERVICE
+                    </span>
                     <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] tracking-wider font-medium border ${t.call_status === 'Closed' ? 'bg-emerald-50 border-emerald-200 text-emerald-600' : t.call_status === 'Open' ? 'bg-amber-50 border-amber-200 text-amber-600' : 'bg-orange-50 border-orange-200 text-orange-600'}`}>
                       <span className={`w-1 h-1 rounded-full ${t.call_status === 'Closed' ? 'bg-emerald-400' : t.call_status === 'Open' ? 'bg-amber-400' : 'bg-orange-400'}`} />
                       {t.call_status || 'Open'}
                     </span>
                     <span className="text-[9px] text-text-muted">{formatDate(t.received_date || t.created_at)}</span>
+                  </div>
+                </div>
+              </GlassCard>
+            ))}
+          </div>
+        </>
+      )}
+
+      {!loading && onsiteTickets.length > 0 && (
+        <>
+          <div className="flex items-center justify-between px-1 animate-fade-up mt-4">
+            <h3 className="text-[11px] tracking-[3px] font-semibold text-text-secondary uppercase">Onsite Tickets</h3>
+            <span className="text-[10px] text-text-muted">{onsiteTickets.length} ticket{onsiteTickets.length !== 1 ? 's' : ''}</span>
+          </div>
+          <div className="space-y-2 animate-fade-up">
+            {onsiteTickets.map(t => (
+              <GlassCard key={t.id} hoverable className="p-4 border-l-[3px] border-l-orange-400" onClick={() => navigate(`/onsite/${t.id}`)}>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-semibold text-text-primary truncate">{t.customer_name || '—'}</div>
+                    <div className="text-[11px] text-text-muted mt-0.5 truncate">{[t.technician, t.location].filter(Boolean).join(' • ')}</div>
+                    {t.complaint && <div className="text-[11px] text-text-secondary mt-1 line-clamp-1">{t.complaint}</div>}
+                  </div>
+                  <div className="flex flex-col items-end gap-1.5 shrink-0">
+                    <span className="text-[10px] font-mono text-orange-500 font-medium">{t.ticket_number}</span>
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] tracking-wider font-medium border bg-orange-50 border-orange-200 text-orange-600">
+                      <span className="w-1 h-1 rounded-full bg-orange-400" />ONSITE
+                    </span>
+                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] tracking-wider font-medium border ${t.status === 'Closed' ? 'bg-emerald-50 border-emerald-200 text-emerald-600' : t.status === 'Open' ? 'bg-amber-50 border-amber-200 text-amber-600' : 'bg-orange-50 border-orange-200 text-orange-600'}`}>
+                      <span className={`w-1 h-1 rounded-full ${t.status === 'Closed' ? 'bg-emerald-400' : t.status === 'Open' ? 'bg-amber-400' : 'bg-orange-400'}`} />
+                      {t.status || 'Open'}
+                    </span>
+                  </div>
+                </div>
+              </GlassCard>
+            ))}
+          </div>
+        </>
+      )}
+
+      {!loading && remoteTickets.length > 0 && (
+        <>
+          <div className="flex items-center justify-between px-1 animate-fade-up mt-4">
+            <h3 className="text-[11px] tracking-[3px] font-semibold text-text-secondary uppercase">Remote Sessions</h3>
+            <span className="text-[10px] text-text-muted">{remoteTickets.length} ticket{remoteTickets.length !== 1 ? 's' : ''}</span>
+          </div>
+          <div className="space-y-2 animate-fade-up">
+            {remoteTickets.map(t => (
+              <GlassCard key={t.id} hoverable className="p-4 border-l-[3px] border-l-violet-400" onClick={() => navigate(`/remote/${t.id}`)}>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-semibold text-text-primary truncate">{t.customer_name || '—'}</div>
+                    <div className="text-[11px] text-text-muted mt-0.5 truncate">{[t.technician, t.location].filter(Boolean).join(' • ')}</div>
+                    {t.complaint && <div className="text-[11px] text-text-secondary mt-1 line-clamp-1">{t.complaint}</div>}
+                  </div>
+                  <div className="flex flex-col items-end gap-1.5 shrink-0">
+                    <span className="text-[10px] font-mono text-violet-500 font-medium">{t.ticket_number}</span>
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] tracking-wider font-medium border bg-violet-50 border-violet-200 text-violet-600">
+                      <span className="w-1 h-1 rounded-full bg-violet-400" />REMOTE
+                    </span>
+                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] tracking-wider font-medium border ${t.status === 'Closed' ? 'bg-emerald-50 border-emerald-200 text-emerald-600' : t.status === 'Open' ? 'bg-amber-50 border-amber-200 text-amber-600' : 'bg-violet-50 border-violet-200 text-violet-600'}`}>
+                      <span className={`w-1 h-1 rounded-full ${t.status === 'Closed' ? 'bg-emerald-400' : t.status === 'Open' ? 'bg-amber-400' : 'bg-violet-400'}`} />
+                      {t.status || 'Open'}
+                    </span>
                   </div>
                 </div>
               </GlassCard>
