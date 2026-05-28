@@ -4,10 +4,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { GlassCard, AnimatedNumber, NeonButton, ConfidenceMeter } from '@/components/ui';
+import { GlassCard, AnimatedNumber, NeonButton } from '@/components/ui';
 import { colors, fonts, fontSize, spacing, borderRadius } from '@/theme';
 import { useFinanceStore } from '@/store/useFinanceStore';
-import { EXPENSE_CATEGORIES, NECESSITY_LEVELS, getCategoryById } from '@/constants/categories';
+import { NECESSITY_LEVELS, getCategoryById } from '@/constants/categories';
 
 export default function MoneyScreen() {
   const stats = useFinanceStore((s) => s.getMonthlyStats());

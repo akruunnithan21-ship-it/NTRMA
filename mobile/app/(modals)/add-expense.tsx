@@ -8,15 +8,10 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  Pressable,
 } from 'react-native';
 import Animated, {
   FadeInDown,
-  FadeInUp,
   SlideInRight,
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
@@ -45,7 +40,6 @@ export default function AddExpenseModal() {
   const [isRecurring, setIsRecurring] = useState(false);
   const [recurrence, setRecurrence] = useState('monthly');
   const [note, setNote] = useState('');
-  const [showAdvanced, setShowAdvanced] = useState(false);
   const [suggestedCategory, setSuggestedCategory] = useState<string | null>(null);
   const [quickNames, setQuickNames] = useState<string[]>([]);
 

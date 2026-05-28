@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { format, startOfMonth, endOfMonth, isWithinInterval, parseISO, subMonths } from 'date-fns';
+import { startOfMonth, endOfMonth, isWithinInterval, parseISO, subMonths } from 'date-fns';
 import { EXPENSE_CATEGORIES } from '@/constants/categories';
 
 // ===== TYPES =====
