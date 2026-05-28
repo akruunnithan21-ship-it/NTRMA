@@ -39,22 +39,74 @@ enum RiskProfile {
 // ========== FINANCE TRACKER ==========
 
 model Transaction {
-  id        String   @id @default(uuid())
-  userId    String   @map("user_id")
-  type      TransactionType
-  amount    Float
-  category  String
-  name      String
-  date      DateTime
-  note      String?
-  recurring Boolean  @default(false)
-  createdAt DateTime @default(now()) @map("created_at")
+  id              String          @id @default(uuid())
+  userId          String          @map("user_id")
+  type            TransactionType
+  amount          Float
+  category        String
+  name            String
+  date            DateTime
+  paymentMethod   String?         @map("payment_method") // cash, upi, card, wallet, net_banking
+  necessityLevel  Int?            @map("necessity_level") // 1-5
+  isRecurring     Boolean         @default(false) @map("is_recurring")
+  recurrenceType  String?         @map("recurrence_type") // daily, weekly, monthly, yearly
+  note            String?
+  tags            String[]        @default([])
+  isSplit         Boolean         @default(false) @map("is_split")
+  splitTotal      Float?          @map("split_total")
+  createdAt       DateTime        @default(now()) @map("created_at")
 
-  user      User     @relation(fields: [userId], references: [id])
+  user            User            @relation(fields: [userId], references: [id])
 
   @@index([userId, date])
   @@index([userId, category])
+  @@index([userId, type, date])
   @@map("transactions")
+}
+
+model RecurringTemplate {
+  id            String   @id @default(uuid())
+  userId        String   @map("user_id")
+  type          TransactionType
+  category      String
+  name          String
+  amount        Float
+  frequency     String   // daily, weekly, monthly, yearly
+  nextDueDate   DateTime @map("next_due_date")
+  active        Boolean  @default(true)
+  paymentMethod String?  @map("payment_method")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@index([userId, active])
+  @@map("recurring_templates")
+}
+
+model SpendingRule {
+  id         String @id @default(uuid())
+  userId     String @map("user_id")
+  keyword    String
+  category   String
+  confidence Float  @default(0.8)
+  timesUsed  Int    @default(1) @map("times_used")
+
+  @@unique([userId, keyword])
+  @@map("spending_rules")
+}
+
+model AIInsight {
+  id              String   @id @default(uuid())
+  userId          String   @map("user_id")
+  type            String   // suggestion, alert, report
+  title           String
+  content         String
+  potentialSaving Float?   @map("potential_saving")
+  difficulty      String?  // easy, medium, hard
+  category        String?
+  status          String   @default("new") // new, read, applied, dismissed
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@index([userId, status])
+  @@map("ai_insights")
 }
 
 enum TransactionType {
