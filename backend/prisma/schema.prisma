@@ -1,0 +1,245 @@
+// WealthMaster Database Schema
+// PostgreSQL with Prisma ORM
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ========== AUTH ==========
+
+model User {
+  id              String   @id @default(uuid())
+  pinHash         String   @map("pin_hash")
+  biometricEnabled Boolean @default(true) @map("biometric_enabled")
+  riskProfile     RiskProfile @default(AGGRESSIVE)
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  transactions    Transaction[]
+  budgets         Budget[]
+  holdings        Holding[]
+  paperHoldings   PaperHolding[]
+  goals           Goal[]
+  signals         Signal[]
+
+  @@map("users")
+}
+
+enum RiskProfile {
+  AGGRESSIVE
+  BALANCED
+  CONSERVATIVE
+}
+
+// ========== FINANCE TRACKER ==========
+
+model Transaction {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  type      TransactionType
+  amount    Float
+  category  String
+  name      String
+  date      DateTime
+  note      String?
+  recurring Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([userId, date])
+  @@index([userId, category])
+  @@map("transactions")
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+model Budget {
+  id        String @id @default(uuid())
+  userId    String @map("user_id")
+  category  String
+  limit     Float
+  monthYear String @map("month_year") // "2026-05"
+  color     String @default("#00F0FF")
+
+  user      User   @relation(fields: [userId], references: [id])
+
+  @@unique([userId, category, monthYear])
+  @@map("budgets")
+}
+
+model Goal {
+  id            String   @id @default(uuid())
+  userId        String   @map("user_id")
+  name          String
+  targetAmount  Float    @map("target_amount")
+  currentAmount Float    @default(0) @map("current_amount")
+  deadline      DateTime?
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  user          User     @relation(fields: [userId], references: [id])
+
+  @@map("goals")
+}
+
+// ========== PORTFOLIO ==========
+
+model Holding {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  symbol      String
+  exchange    Exchange
+  quantity    Int
+  avgBuyPrice Float    @map("avg_buy_price")
+  buyDate     DateTime @map("buy_date")
+  notes       String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@index([userId, symbol])
+  @@map("holdings")
+}
+
+model PaperHolding {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  symbol      String
+  exchange    Exchange
+  quantity    Int
+  avgBuyPrice Float    @map("avg_buy_price")
+  buyDate     DateTime @map("buy_date")
+  signalId    String?  @map("signal_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@map("paper_holdings")
+}
+
+enum Exchange {
+  NSE
+  BSE
+  NYSE
+  NASDAQ
+}
+
+// ========== MARKET DATA ==========
+
+model StockPrice {
+  id        String   @id @default(uuid())
+  symbol    String
+  exchange  Exchange
+  open      Float
+  high      Float
+  low       Float
+  close     Float
+  volume    BigInt
+  date      DateTime
+
+  @@unique([symbol, exchange, date])
+  @@index([symbol, date])
+  @@map("stock_prices")
+}
+
+model TechnicalIndicator {
+  id            String   @id @default(uuid())
+  symbol        String
+  indicatorName String   @map("indicator_name")
+  value         Float
+  timeframe     String   // "1D", "1W", "1M"
+  date          DateTime
+
+  @@index([symbol, indicatorName, date])
+  @@map("technical_indicators")
+}
+
+// ========== AI SIGNALS ==========
+
+model Signal {
+  id           String       @id @default(uuid())
+  userId       String       @map("user_id")
+  symbol       String
+  exchange     Exchange
+  direction    SignalDirection
+  confidence   Int          // 0-100
+  entryPrice   Float        @map("entry_price")
+  targetPrice  Float        @map("target_price")
+  stopLoss     Float        @map("stop_loss")
+  riskReward   String       @map("risk_reward")
+  timeHorizon  String       @map("time_horizon")
+  explanation  String
+  strategy     RiskProfile
+  status       SignalStatus @default(ACTIVE)
+  factors      Json         // { technical, fundamental, sentiment, macro }
+  createdAt    DateTime     @default(now()) @map("created_at")
+  closedAt     DateTime?    @map("closed_at")
+
+  user         User         @relation(fields: [userId], references: [id])
+  result       SignalResult?
+
+  @@index([userId, status])
+  @@index([symbol, createdAt])
+  @@map("signals")
+}
+
+model SignalResult {
+  id            String   @id @default(uuid())
+  signalId      String   @unique @map("signal_id")
+  actualReturn  Float    @map("actual_return")
+  hitTarget     Boolean  @map("hit_target")
+  hitStopLoss   Boolean  @map("hit_stop_loss")
+  exitPrice     Float    @map("exit_price")
+  exitDate      DateTime @map("exit_date")
+  holdingDays   Int      @map("holding_days")
+
+  signal        Signal   @relation(fields: [signalId], references: [id])
+
+  @@map("signal_results")
+}
+
+enum SignalDirection {
+  BUY
+  SELL
+  HOLD
+}
+
+enum SignalStatus {
+  ACTIVE
+  HIT_TARGET
+  HIT_STOPLOSS
+  EXPIRED
+  CANCELLED
+}
+
+// ========== EDUCATION ==========
+
+model Lesson {
+  id        String @id @default(uuid())
+  title     String
+  content   String
+  category  String
+  order     Int
+  duration  Int    // minutes
+
+  @@map("lessons")
+}
+
+model UserProgress {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  lessonId    String   @map("lesson_id")
+  completed   Boolean  @default(false)
+  completedAt DateTime? @map("completed_at")
+
+  @@unique([userId, lessonId])
+  @@map("user_progress")
+}
