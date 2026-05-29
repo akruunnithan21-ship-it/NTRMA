@@ -1,19 +1,60 @@
 /**
- * API Service Layer
- * Communicates with the WealthMaster backend
+ * WealthMaster API Service Layer
+ * 
+ * CONNECTION MODES:
+ * 1. LOCAL (same WiFi): Uses your PC's local IP (e.g., 192.168.1.105:3001)
+ * 2. TUNNEL (anywhere): Uses Cloudflare tunnel URL (e.g., https://wealthmaster-api.cfargotunnel.com)
+ * 
+ * HOW TO CONFIGURE:
+ * Change the API_CONFIG below based on your setup.
  */
 
 import axios from 'axios';
 
-// Default to localhost for development
-// Change this to your PC's IP when testing on physical device
-const BASE_URL = __DEV__
-  ? 'http://192.168.1.100:3001/api'  // Replace with your PC's local IP
-  : 'https://api.wealthmaster.app/api';
+// ═══════════════════════════════════════════════════════════════
+// 🔧 CONFIGURATION — CHANGE THESE VALUES FOR YOUR SETUP
+// ═══════════════════════════════════════════════════════════════
+
+const API_CONFIG = {
+  // Your PC's local IP address (find with 'ipconfig' in Command Prompt)
+  // Look for "IPv4 Address" under your WiFi adapter
+  LOCAL_IP: '192.168.1.100',
+
+  // Cloudflare tunnel URL (set this after running setup-tunnel.bat)
+  // Leave empty string if you haven't set up tunnel yet
+  TUNNEL_URL: '',
+
+  // Which mode to use:
+  // 'local'  = connect via WiFi (phone + PC must be on same network)
+  // 'tunnel' = connect via internet (works from anywhere)
+  // 'auto'   = use tunnel if available, fallback to local
+  MODE: 'auto' as 'local' | 'tunnel' | 'auto',
+};
+
+// ═══════════════════════════════════════════════════════════════
+// DO NOT EDIT BELOW THIS LINE (unless you know what you're doing)
+// ═══════════════════════════════════════════════════════════════
+
+function getBaseURL(): string {
+  const { MODE, LOCAL_IP, TUNNEL_URL } = API_CONFIG;
+
+  if (MODE === 'tunnel' && TUNNEL_URL) {
+    return `${TUNNEL_URL}/api`;
+  }
+
+  if (MODE === 'auto' && TUNNEL_URL) {
+    return `${TUNNEL_URL}/api`;
+  }
+
+  // Local mode or fallback
+  return `http://${LOCAL_IP}:3001/api`;
+}
+
+const BASE_URL = getBaseURL();
 
 const api = axios.create({
   baseURL: BASE_URL,
-  timeout: 10000,
+  timeout: 15000,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -22,18 +63,25 @@ const api = axios.create({
 // Add auth token to requests
 api.interceptors.request.use((config) => {
   // TODO: Get token from secure store
-  // const token = await SecureStore.getItemAsync('auth_token');
-  // if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
-// Handle errors globally
+// Handle errors globally with retry logic
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
+    // If tunnel fails, try local as fallback
+    if (API_CONFIG.MODE === 'auto' && API_CONFIG.TUNNEL_URL && error.code === 'ECONNREFUSED') {
+      const localURL = `http://${API_CONFIG.LOCAL_IP}:3001/api`;
+      const originalRequest = error.config;
+      originalRequest.baseURL = localURL;
+      return axios(originalRequest);
+    }
+
     if (error.response?.status === 401) {
       // TODO: Navigate to login
     }
+
     return Promise.reject(error);
   }
 );
@@ -92,5 +140,13 @@ export const portfolioAPI = {
   getNetWorth: () => api.get('/portfolio/networth'),
   getSIPs: () => api.get('/portfolio/sips'),
 };
+
+// ===== UTILITY =====
+export const getConnectionInfo = () => ({
+  mode: API_CONFIG.MODE,
+  baseURL: BASE_URL,
+  localIP: API_CONFIG.LOCAL_IP,
+  tunnelURL: API_CONFIG.TUNNEL_URL || 'not configured',
+});
 
 export default api;

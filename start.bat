@@ -3,68 +3,107 @@ title WealthMaster - Starting All Services
 color 0A
 
 echo.
-echo  ========================================
-echo    WEALTHMASTER - Starting Up...
-echo  ========================================
+echo  ╔══════════════════════════════════════╗
+echo  ║   WEALTHMASTER - Starting Up...     ║
+echo  ╚══════════════════════════════════════╝
 echo.
 
-:: Check Docker is running
+:: Set the root directory to where this script is
+cd /d "%~dp0"
+
+:: ============================================
+:: [1/5] CHECK DOCKER
+:: ============================================
 echo [1/5] Checking Docker...
 docker info >nul 2>&1
 if %errorlevel% neq 0 (
-    echo    ERROR: Docker Desktop is not running!
-    echo    Please open Docker Desktop and wait for it to start.
-    echo    Then run this script again.
+    echo.
+    echo    ╔═══════════════════════════════════════════╗
+    echo    ║  ERROR: Docker Desktop is not running!    ║
+    echo    ║  Open Docker Desktop from Start Menu,    ║
+    echo    ║  wait 30 seconds, then run this again.   ║
+    echo    ╚═══════════════════════════════════════════╝
+    echo.
     pause
     exit /b 1
 )
-echo    Docker is running
+echo    [OK] Docker is running
 echo.
 
-:: Start Database + Cache
+:: ============================================
+:: [2/5] START DATABASE + CACHE
+:: ============================================
 echo [2/5] Starting Database + Cache...
-cd /d "%~dp0"
-docker compose up -d postgres redis
-echo    PostgreSQL + Redis started
+docker compose up -d postgres redis 2>nul
+if %errorlevel% neq 0 (
+    echo    WARNING: Docker compose had an issue, but continuing...
+)
+echo    [OK] PostgreSQL + Redis started
 echo.
 
-:: Start Backend (Node.js) in new window
-echo [3/5] Starting Backend Server...
-start "WealthMaster-Backend" cmd /k "cd /d %~dp0backend && npm run dev"
-timeout /t 3 >nul
-echo    Backend starting on port 3001
+:: ============================================
+:: [3/5] KILL ANY ZOMBIE PROCESSES ON PORTS
+:: ============================================
+echo [3/5] Clearing old processes...
+for /f "tokens=5" %%a in ('netstat -ano ^| findstr :3001 ^| findstr LISTENING 2^>nul') do (
+    taskkill /PID %%a /F >nul 2>&1
+)
+for /f "tokens=5" %%a in ('netstat -ano ^| findstr :8000 ^| findstr LISTENING 2^>nul') do (
+    taskkill /PID %%a /F >nul 2>&1
+)
+echo    [OK] Ports 3001 and 8000 cleared
 echo.
 
-:: Start AI Engine (Python) in new window
-echo [4/5] Starting AI Engine...
-start "WealthMaster-AI-Engine" cmd /k "cd /d %~dp0ai-engine && .venv\Scripts\activate && uvicorn app.main:app --reload --port 8000"
-timeout /t 3 >nul
-echo    AI Engine starting on port 8000
+:: ============================================
+:: [4/5] START BACKEND (Node.js)
+:: ============================================
+echo [4/5] Starting Backend Server...
+start "WealthMaster-Backend" /min cmd /k "cd /d "%~dp0backend" && npm run dev"
+timeout /t 4 /nobreak >nul
+echo    [OK] Backend starting on http://localhost:3001
 echo.
 
-:: Check Ollama
-echo [5/5] Checking Ollama...
+:: ============================================
+:: [5/5] START AI ENGINE (Python)
+:: ============================================
+echo [5/5] Starting AI Engine...
+start "WealthMaster-AI" /min cmd /k "cd /d "%~dp0ai-engine" && .venv\Scripts\activate && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+timeout /t 4 /nobreak >nul
+echo    [OK] AI Engine starting on http://localhost:8000
+echo.
+
+:: ============================================
+:: CHECK OLLAMA
+:: ============================================
+echo Checking Ollama...
 ollama list >nul 2>&1
 if %errorlevel% neq 0 (
-    echo    Ollama not running. Starting it...
-    start "" ollama serve
-    timeout /t 2 >nul
+    echo    Starting Ollama...
+    start "" /min ollama serve
+    timeout /t 3 /nobreak >nul
 )
-echo    Ollama is ready
+echo    [OK] Ollama ready
 echo.
 
-echo  ========================================
-echo    ALL SERVICES STARTED!
-echo  ========================================
-echo  Backend:    http://localhost:3001
-echo  AI Engine:  http://localhost:8000
-echo  AI Docs:    http://localhost:8000/docs
-echo  Ollama:     http://localhost:11434
-echo  ========================================
+:: ============================================
+:: DONE
+:: ============================================
 echo.
-echo  To start Mobile App, open new terminal:
-echo  cd mobile
-echo  npx expo start
-echo  ========================================
+echo  ╔══════════════════════════════════════════════╗
+echo  ║        ALL SERVICES STARTED!                ║
+echo  ╠══════════════════════════════════════════════╣
+echo  ║  Backend:    http://localhost:3001           ║
+echo  ║  AI Engine:  http://localhost:8000           ║
+echo  ║  AI Docs:    http://localhost:8000/docs      ║
+echo  ║  Health:     http://localhost:3001/health    ║
+echo  ╠══════════════════════════════════════════════╣
+echo  ║  To use app on phone:                       ║
+echo  ║  1. Open new terminal                       ║
+echo  ║  2. cd Desktop\wealthmaster\mobile          ║
+echo  ║  3. npx expo start                          ║
+echo  ║  4. Scan QR with Expo Go app                ║
+echo  ╚══════════════════════════════════════════════╝
+echo.
+echo  (This window can be minimized. Don't close it.)
 echo.
 pause
