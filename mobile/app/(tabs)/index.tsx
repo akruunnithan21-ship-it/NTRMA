@@ -1,6 +1,6 @@
 import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import Animated, { FadeInDown, FadeInRight } from 'react-native-reanimated';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   GlassCard,
@@ -10,11 +10,12 @@ import {
   PriceChange,
   NeonButton,
 } from '@/components/ui';
-import { colors, fonts, fontSize, spacing, textStyles } from '@/theme';
+import { useNetWorthStore } from '@/store/useNetWorthStore';
+import { colors, fonts, fontSize, spacing } from '@/theme';
 
 export default function DashboardScreen() {
-  // Mock data - will be replaced with Zustand store data
-  const netWorth = 14832;
+  // Use real net worth from store
+  const netWorth = useNetWorthStore((s) => s.getNetWorth());
   const todayPnL = 234;
   const todayPnLPercent = 1.6;
   const investable = 2400;

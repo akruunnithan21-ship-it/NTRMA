@@ -5,6 +5,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { GlassCard, AnimatedNumber, NeonButton } from '@/components/ui';
+import { NetWorthCard } from '@/components/NetWorthCard';
 import { colors, fonts, fontSize, spacing, borderRadius } from '@/theme';
 import { useFinanceStore } from '@/store/useFinanceStore';
 import { NECESSITY_LEVELS, getCategoryById } from '@/constants/categories';
@@ -70,6 +71,9 @@ export default function MoneyScreen() {
             </View>
           </View>
         </GlassCard>
+
+        {/* Debt & Asset Calculator */}
+        <NetWorthCard />
 
         {/* Budget vs Actual */}
         <GlassCard delay={200}>
