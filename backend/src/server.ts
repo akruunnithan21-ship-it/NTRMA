@@ -8,12 +8,7 @@ import { portfolioRoutes } from './routes/portfolio.routes';
 import { authRoutes } from './routes/auth.routes';
 
 const app = Fastify({
-  logger: {
-    transport: {
-      target: 'pino-pretty',
-      options: { colorize: true },
-    },
-  },
+  logger: true,
 });
 
 async function start() {
