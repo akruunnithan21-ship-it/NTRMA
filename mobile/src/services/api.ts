@@ -55,12 +55,21 @@ export const financeAPI = {
 
 // ===== MARKET =====
 export const marketAPI = {
-  getStock: (symbol: string) => api.get(`/market/stock/${symbol}`),
-  getBatchPrices: (symbols: string[]) => api.post('/market/prices/batch', { symbols }),
+  getStock: (symbol: string) => api.get(`/market/price/${symbol}`),
+  getStockWithExchange: (symbol: string, exchange: string) =>
+    api.get(`/market/price/${symbol}`, { params: { exchange } }),
+  getBatchPrices: (symbols: { symbol: string; exchange: string }[]) =>
+    api.post('/market/prices/batch', { symbols }),
   getIndices: () => api.get('/market/indices'),
+  getStockInfo: (symbol: string, exchange: string) =>
+    api.get(`/market/info/${symbol}`, { params: { exchange } }),
+  getHistorical: (symbol: string, exchange: string, period: string) =>
+    api.get(`/market/historical/${symbol}`, { params: { exchange, period } }),
   getSectors: () => api.get('/market/sectors'),
+  getMarketStatus: () => api.get('/market/status'),
   calculateCharges: (data: any) => api.post('/market/charges/calculate', data),
   search: (q: string) => api.get('/market/search', { params: { q } }),
+  flushCache: () => api.post('/market/cache/flush'),
 };
 
 // ===== AI =====

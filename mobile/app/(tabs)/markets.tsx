@@ -1,23 +1,71 @@
-import React, { useState } from 'react';
-import { ScrollView, StyleSheet, Text, View, TextInput, TouchableOpacity } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import {
+  ScrollView, StyleSheet, Text, View, TextInput,
+  TouchableOpacity, RefreshControl, ActivityIndicator,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { GlassCard, SignalBadge, PriceChange } from '@/components/ui';
+import { router } from 'expo-router';
+import * as Haptics from 'expo-haptics';
+import { GlassCard, SignalBadge } from '@/components/ui';
 import { colors, fonts, fontSize, spacing, borderRadius } from '@/theme';
+import { useMarketStore } from '@/store/useMarketStore';
+import { useMarketData } from '@/hooks/useMarketData';
 
 export default function MarketsScreen() {
   const [activeTab, setActiveTab] = useState<'watchlist' | 'signals' | 'sectors'>('watchlist');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const indices = useMarketStore((s) => s.indices);
+  const watchlist = useMarketStore((s) => s.watchlist);
+  const { isLoading, isStale, nseOpen, usOpen, lastRefresh, refresh } = useMarketData();
+
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    await refresh();
+    setRefreshing(false);
+  }, [refresh]);
+
+  const filteredWatchlist = searchQuery
+    ? watchlist.filter((w) =>
+        w.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        w.name.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : watchlist;
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
+            progressBackgroundColor={colors.surface}
+          />
+        }
       >
         {/* Header */}
         <Animated.View entering={FadeInDown.duration(400)} style={styles.header}>
-          <Text style={styles.title}>Markets</Text>
-          <Text style={styles.subtitle}>Live data · NSE · BSE · US</Text>
+          <View>
+            <Text style={styles.title}>Markets</Text>
+            <Text style={styles.subtitle}>
+              {nseOpen ? '🟢 NSE Open' : '🔴 NSE Closed'}
+              {'  '}
+              {usOpen ? '🟢 US Open' : '🔴 US Closed'}
+            </Text>
+          </View>
+          {isLoading && <ActivityIndicator color={colors.primary} size="small" />}
+          {isStale && !isLoading && (
+            <View style={styles.staleBadge}>
+              <Text style={styles.staleText}>⚠️ Stale</Text>
+            </View>
+          )}
         </Animated.View>
 
         {/* Search */}
@@ -26,17 +74,35 @@ export default function MarketsScreen() {
             placeholder="Search stocks, MFs, indices..."
             placeholderTextColor={colors.textMuted}
             style={styles.searchInput}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            returnKeyType="search"
           />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity style={styles.clearBtn} onPress={() => setSearchQuery('')}>
+              <Text style={styles.clearBtnText}>✕</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Market Indices */}
         <GlassCard delay={100}>
           <Text style={styles.sectionTitle}>INDICES</Text>
           <View style={styles.indicesGrid}>
-            <IndexCard name="NIFTY 50" value={22430.85} change={178.5} changePercent={0.8} />
-            <IndexCard name="SENSEX" value={73891.20} change={442.3} changePercent={0.6} />
-            <IndexCard name="BANK NIFTY" value={48234.60} change={-156.2} changePercent={-0.32} />
-            <IndexCard name="S&P 500" value={5892.40} change={-11.8} changePercent={-0.2} />
+            {indices.map((idx) => (
+              <View key={idx.symbol} style={styles.indexCard}>
+                <Text style={styles.indexName}>{idx.name}</Text>
+                <Text style={styles.indexValue}>
+                  {idx.price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                </Text>
+                <Text style={[styles.indexChange, { color: idx.changePercent >= 0 ? colors.success : colors.danger }]}>
+                  {idx.changePercent >= 0 ? '▲' : '▼'} {Math.abs(idx.changePercent).toFixed(2)}%
+                </Text>
+              </View>
+            ))}
+            {indices.length === 0 && (
+              <Text style={styles.emptyText}>Pull down to refresh market data</Text>
+            )}
           </View>
         </GlassCard>
 
@@ -45,11 +111,11 @@ export default function MarketsScreen() {
           {(['watchlist', 'signals', 'sectors'] as const).map((tab) => (
             <TouchableOpacity
               key={tab}
-              onPress={() => setActiveTab(tab)}
+              onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setActiveTab(tab); }}
               style={[styles.tab, activeTab === tab && styles.tabActive]}
             >
               <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
-                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                {tab === 'watchlist' ? `Watchlist (${watchlist.length})` : tab.charAt(0).toUpperCase() + tab.slice(1)}
               </Text>
             </TouchableOpacity>
           ))}
@@ -58,16 +124,38 @@ export default function MarketsScreen() {
         {/* Watchlist */}
         {activeTab === 'watchlist' && (
           <View style={styles.stockList}>
-            <StockRow symbol="TATAMOTORS" name="Tata Motors" price={952.4} change={12.5} changePercent={1.33} signal="BUY" />
-            <StockRow symbol="RELIANCE" name="Reliance Industries" price={2834.75} change={-28.4} changePercent={-0.99} signal="HOLD" />
-            <StockRow symbol="HDFCBANK" name="HDFC Bank" price={1678.90} change={15.2} changePercent={0.91} signal="BUY" />
-            <StockRow symbol="INFY" name="Infosys" price={1456.30} change={-8.6} changePercent={-0.59} signal="SELL" />
-            <StockRow symbol="TCS" name="TCS" price={3890.15} change={45.8} changePercent={1.19} signal="BUY" />
-            <StockRow symbol="AAPL" name="Apple Inc (US)" price={189.45} change={2.3} changePercent={1.23} signal="HOLD" />
+            {filteredWatchlist.length === 0 && searchQuery && (
+              <Text style={styles.emptyText}>No stocks match "{searchQuery}"</Text>
+            )}
+            {filteredWatchlist.map((stock) => (
+              <TouchableOpacity
+                key={`${stock.symbol}_${stock.exchange}`}
+                activeOpacity={0.7}
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  router.push({ pathname: '/(modals)/stock-detail', params: { symbol: stock.symbol, exchange: stock.exchange } });
+                }}
+              >
+                <GlassCard animate={false} style={styles.stockRow}>
+                  <View style={styles.stockRowLeft}>
+                    <Text style={styles.stockSymbol}>{stock.symbol}</Text>
+                    <Text style={styles.stockName} numberOfLines={1}>{stock.name}</Text>
+                  </View>
+                  <View style={styles.stockRowRight}>
+                    <Text style={styles.stockPrice}>
+                      ₹{stock.price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    </Text>
+                    <Text style={[styles.stockChange, { color: stock.changePercent >= 0 ? colors.success : colors.danger }]}>
+                      {stock.changePercent >= 0 ? '+' : ''}{stock.changePercent.toFixed(2)}%
+                    </Text>
+                  </View>
+                </GlassCard>
+              </TouchableOpacity>
+            ))}
           </View>
         )}
 
-        {/* AI Signals Tab */}
+        {/* Signals Tab */}
         {activeTab === 'signals' && (
           <View style={styles.stockList}>
             <GlassCard variant="highlighted" glowColor={colors.success}>
@@ -102,65 +190,45 @@ export default function MarketsScreen() {
                 </View>
               </View>
             </GlassCard>
+            <Text style={styles.signalNote}>
+              💡 Signals are generated by AI after market analysis. Connect Ollama for live signals.
+            </Text>
           </View>
         )}
 
         {/* Sectors Tab */}
         {activeTab === 'sectors' && (
           <View style={styles.stockList}>
-            <SectorRow name="Auto" change={2.4} flow="inflow" />
-            <SectorRow name="Banking" change={0.8} flow="inflow" />
-            <SectorRow name="IT" change={-1.2} flow="outflow" />
-            <SectorRow name="Pharma" change={1.6} flow="inflow" />
-            <SectorRow name="FMCG" change={-0.3} flow="neutral" />
-            <SectorRow name="Metal" change={3.1} flow="inflow" />
+            <SectorRow name="Auto" change={2.4} />
+            <SectorRow name="Banking" change={0.8} />
+            <SectorRow name="IT" change={-1.2} />
+            <SectorRow name="Pharma" change={1.6} />
+            <SectorRow name="FMCG" change={-0.3} />
+            <SectorRow name="Metal" change={3.1} />
+            <SectorRow name="Energy" change={0.5} />
+            <SectorRow name="Realty" change={-0.8} />
           </View>
+        )}
+
+        {/* Last refresh info */}
+        {lastRefresh && (
+          <Text style={styles.lastRefreshText}>
+            Last updated: {new Date(lastRefresh).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+          </Text>
         )}
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-// Index card sub-component
-const IndexCard = ({ name, value, change, changePercent }: { name: string; value: number; change: number; changePercent: number }) => (
-  <View style={styles.indexCard}>
-    <Text style={styles.indexName}>{name}</Text>
-    <Text style={styles.indexValue}>{value.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</Text>
-    <Text style={[styles.indexChange, { color: change >= 0 ? colors.success : colors.danger }]}>
-      {change >= 0 ? '▲' : '▼'} {Math.abs(changePercent).toFixed(2)}%
-    </Text>
-  </View>
-);
-
-// Stock row sub-component
-const StockRow = ({ symbol, name, price, change, changePercent, signal }: { symbol: string; name: string; price: number; change: number; changePercent: number; signal: 'BUY' | 'SELL' | 'HOLD' }) => (
-  <GlassCard animate={false} style={styles.stockRow}>
-    <View style={styles.stockRowLeft}>
-      <Text style={styles.stockSymbol}>{symbol}</Text>
-      <Text style={styles.stockName}>{name}</Text>
-    </View>
-    <View style={styles.stockRowRight}>
-      <Text style={styles.stockPrice}>₹{price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</Text>
-      <View style={styles.stockChangeBadge}>
-        <Text style={[styles.stockChangeText, { color: change >= 0 ? colors.success : colors.danger }]}>
-          {change >= 0 ? '+' : ''}{changePercent.toFixed(2)}%
-        </Text>
-        <SignalBadge signal={signal} size="sm" />
-      </View>
-    </View>
-  </GlassCard>
-);
-
-// Sector row
-const SectorRow = ({ name, change, flow }: { name: string; change: number; flow: 'inflow' | 'outflow' | 'neutral' }) => (
+// Sector row sub-component
+const SectorRow = ({ name, change }: { name: string; change: number }) => (
   <GlassCard animate={false} style={styles.sectorRow}>
     <Text style={styles.sectorName}>{name}</Text>
     <View style={styles.sectorRight}>
+      <View style={[styles.sectorBar, { width: `${Math.min(Math.abs(change) * 15, 80)}%`, backgroundColor: change >= 0 ? colors.success : colors.danger }]} />
       <Text style={[styles.sectorChange, { color: change >= 0 ? colors.success : colors.danger }]}>
         {change >= 0 ? '+' : ''}{change.toFixed(1)}%
-      </Text>
-      <Text style={[styles.sectorFlow, { color: flow === 'inflow' ? colors.success : flow === 'outflow' ? colors.danger : colors.textMuted }]}>
-        {flow === 'inflow' ? '↑ FII Buy' : flow === 'outflow' ? '↓ FII Sell' : '— Neutral'}
       </Text>
     </View>
   </GlassCard>
@@ -169,40 +237,46 @@ const SectorRow = ({ name, change, flow }: { name: string; change: number; flow:
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   scrollContent: { padding: spacing.base, paddingBottom: spacing['5xl'], gap: spacing.base },
-  header: { marginBottom: spacing.sm },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.sm },
   title: { fontFamily: fonts.heading, fontSize: fontSize.xl, color: colors.textPrimary },
-  subtitle: { fontFamily: fonts.body, fontSize: fontSize.md, color: colors.textSecondary },
-  searchContainer: { marginBottom: spacing.sm },
-  searchInput: { backgroundColor: colors.surface, borderRadius: borderRadius.md, borderWidth: 1, borderColor: colors.border, padding: spacing.md, fontFamily: fonts.body, fontSize: fontSize.md, color: colors.textPrimary },
+  subtitle: { fontFamily: fonts.body, fontSize: fontSize.sm, color: colors.textSecondary, marginTop: 2 },
+  staleBadge: { backgroundColor: colors.warningGlow, borderRadius: borderRadius.full, paddingHorizontal: spacing.sm, paddingVertical: 2, borderWidth: 1, borderColor: colors.warning },
+  staleText: { fontFamily: fonts.body, fontSize: fontSize.xs, color: colors.warning },
+  searchContainer: { position: 'relative' },
+  searchInput: { backgroundColor: colors.surface, borderRadius: borderRadius.md, borderWidth: 1, borderColor: colors.border, padding: spacing.md, paddingRight: spacing['2xl'], fontFamily: fonts.body, fontSize: fontSize.md, color: colors.textPrimary },
+  clearBtn: { position: 'absolute', right: spacing.md, top: spacing.md },
+  clearBtnText: { color: colors.textMuted, fontSize: fontSize.lg },
   sectionTitle: { fontFamily: fonts.headingMedium, fontSize: fontSize.sm, color: colors.textSecondary, letterSpacing: 1, marginBottom: spacing.md },
-  indicesGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
-  indexCard: { width: '47%', backgroundColor: colors.surfaceHighlight, borderRadius: borderRadius.md, padding: spacing.md, gap: spacing.xs },
+  indicesGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  indexCard: { width: '48%', backgroundColor: colors.surfaceHighlight, borderRadius: borderRadius.md, padding: spacing.md, gap: spacing.xs },
   indexName: { fontFamily: fonts.bodyMedium, fontSize: fontSize.xs, color: colors.textSecondary },
   indexValue: { fontFamily: fonts.mono, fontSize: fontSize.md, color: colors.textPrimary },
   indexChange: { fontFamily: fonts.mono, fontSize: fontSize.sm },
   tabRow: { flexDirection: 'row', backgroundColor: colors.surface, borderRadius: borderRadius.md, padding: spacing.xs },
   tab: { flex: 1, paddingVertical: spacing.sm, alignItems: 'center', borderRadius: borderRadius.sm },
   tabActive: { backgroundColor: colors.surfaceHighlight },
-  tabText: { fontFamily: fonts.bodyMedium, fontSize: fontSize.md, color: colors.textMuted },
+  tabText: { fontFamily: fonts.bodyMedium, fontSize: fontSize.sm, color: colors.textMuted },
   tabTextActive: { color: colors.primary },
   stockList: { gap: spacing.sm },
   stockRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   stockRowLeft: { flex: 1, gap: 2 },
   stockSymbol: { fontFamily: fonts.headingMedium, fontSize: fontSize.md, color: colors.textPrimary },
   stockName: { fontFamily: fonts.body, fontSize: fontSize.xs, color: colors.textMuted },
-  stockRowRight: { alignItems: 'flex-end', gap: spacing.xs },
+  stockRowRight: { alignItems: 'flex-end', gap: 2 },
   stockPrice: { fontFamily: fonts.mono, fontSize: fontSize.md, color: colors.textPrimary },
-  stockChangeBadge: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  stockChangeText: { fontFamily: fonts.mono, fontSize: fontSize.sm },
+  stockChange: { fontFamily: fonts.mono, fontSize: fontSize.sm },
   signalCard: { gap: spacing.sm },
   signalCardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   signalStockName: { fontFamily: fonts.heading, fontSize: fontSize.lg, color: colors.textPrimary },
   signalStockExchange: { fontFamily: fonts.body, fontSize: fontSize.sm, color: colors.textMuted },
   signalCardMeta: { flexDirection: 'row', gap: spacing.base },
   signalMetaText: { fontFamily: fonts.mono, fontSize: fontSize.sm, color: colors.textSecondary },
+  signalNote: { fontFamily: fonts.body, fontSize: fontSize.sm, color: colors.textMuted, textAlign: 'center', paddingVertical: spacing.md },
   sectorRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  sectorName: { fontFamily: fonts.bodyMedium, fontSize: fontSize.base, color: colors.textPrimary },
-  sectorRight: { alignItems: 'flex-end', gap: 2 },
-  sectorChange: { fontFamily: fonts.mono, fontSize: fontSize.md },
-  sectorFlow: { fontFamily: fonts.body, fontSize: fontSize.xs },
+  sectorName: { fontFamily: fonts.bodyMedium, fontSize: fontSize.base, color: colors.textPrimary, width: 80 },
+  sectorRight: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  sectorBar: { height: 6, borderRadius: 3, minWidth: 4 },
+  sectorChange: { fontFamily: fonts.mono, fontSize: fontSize.sm, width: 50, textAlign: 'right' },
+  emptyText: { fontFamily: fonts.body, fontSize: fontSize.sm, color: colors.textMuted, textAlign: 'center', paddingVertical: spacing.xl },
+  lastRefreshText: { fontFamily: fonts.body, fontSize: fontSize.xs, color: colors.textMuted, textAlign: 'center', marginTop: spacing.sm },
 });
