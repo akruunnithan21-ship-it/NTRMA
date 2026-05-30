@@ -16,3 +16,5 @@ export {
   getCategoryById,
   getCategoriesByType,
 } from './categories';
+
+export { LESSONS, GLOSSARY, getLessonsByCategory } from './lessons';
