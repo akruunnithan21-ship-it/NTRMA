@@ -31,8 +31,8 @@ class OllamaClient:
     """Communicates with local Ollama instance for AI reasoning."""
 
     def __init__(self):
-        self.model = "mistral:7b"  # Default model
-        self.fallback_model = "phi4:latest"  # Lighter alternative
+        self.model = "qwen3:8b"  # Primary model (best reasoning + math)
+        self.fallback_model = "qwen3:8b"  # Same model as fallback
         self.base_url = "http://localhost:11434"
 
     async def ask(self, question: str, context: dict = {}) -> dict:

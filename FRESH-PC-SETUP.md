@@ -77,12 +77,12 @@ You now have a folder called `wealthmaster` on your Desktop.
 
 In the same Command Prompt:
 ```
-ollama pull mistral:7b
+ollama pull qwen3:8b
 ```
 
 Wait 5-10 minutes for download. When done, test it:
 ```
-ollama run mistral:7b "What is a mutual fund in one sentence?"
+ollama run qwen3:8b "What is a mutual fund in one sentence?"
 ```
 
 If it answers → AI brain works! Type `/bye` to exit.

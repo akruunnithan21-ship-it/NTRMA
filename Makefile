@@ -43,8 +43,8 @@ ai:
 
 # Ollama
 ollama-setup:
-	ollama pull mistral:7b
-	@echo "✅ Mistral model downloaded"
+	ollama pull qwen3:8b
+	@echo "✅ Qwen 3 model downloaded"
 
 # Health checks
 health:
