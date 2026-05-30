@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import rateLimit from '@fastify/rate-limit';
@@ -31,15 +32,18 @@ async function start() {
   await app.register(portfolioRoutes, { prefix: '/api/portfolio' });
 
   // Health check
-  app.get('/health', async () => ({
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    services: {
-      database: 'connected',
-      redis: 'connected',
-      aiEngine: 'checking...',
-    },
-  }));
+  app.get('/health', async () => {
+    const dbUrl = process.env.DATABASE_URL || '';
+    const isSupabase = dbUrl.includes('supabase');
+    return {
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      hostname: require('os').hostname(),
+      database: isSupabase ? 'supabase (cloud)' : 'local',
+      redis: process.env.REDIS_URL || 'not configured',
+      ai_engine: process.env.AI_ENGINE_URL || 'http://localhost:8000',
+    };
+  });
 
   // Start server
   const port = Number(process.env.PORT) || 3001;
@@ -47,12 +51,15 @@ async function start() {
 
   try {
     await app.listen({ port, host });
+    const dbUrl = process.env.DATABASE_URL || 'NOT SET';
+    const dbType = dbUrl.includes('supabase') ? 'Supabase Cloud' : 'Local PostgreSQL';
     console.log(`
-╔══════════════════════════════════════════╗
-║   WealthMaster API Server               ║
-║   Running on http://${host}:${port}        ║
-║   Environment: ${process.env.NODE_ENV || 'development'}         ║
-╚══════════════════════════════════════════╝
+╔═══════════════════════════════════════════════════╗
+║   WealthMaster API Server                         ║
+║   Running on http://${host}:${port}                  ║
+║   Database: ${dbType.padEnd(20)}            ║
+║   AI Engine: ${(process.env.AI_ENGINE_URL || 'http://localhost:8000').padEnd(19)}║
+╚═══════════════════════════════════════════════════╝
     `);
   } catch (err) {
     app.log.error(err);

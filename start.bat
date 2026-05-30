@@ -8,41 +8,41 @@ echo  ║   WEALTHMASTER - Starting Up...     ║
 echo  ╚══════════════════════════════════════╝
 echo.
 
-:: Set the root directory to where this script is
 cd /d "%~dp0"
 
 :: ============================================
-:: [1/5] CHECK DOCKER
+:: [1/5] CHECK DOCKER (for Redis cache only)
 :: ============================================
 echo [1/5] Checking Docker...
 docker info >nul 2>&1
 if %errorlevel% neq 0 (
+    echo    WARNING: Docker not running. Redis cache won't work.
+    echo    App still works but stock prices won't be cached.
+    echo    (Open Docker Desktop if you want faster market data)
     echo.
-    echo    ╔═══════════════════════════════════════════╗
-    echo    ║  ERROR: Docker Desktop is not running!    ║
-    echo    ║  Open Docker Desktop from Start Menu,    ║
-    echo    ║  wait 30 seconds, then run this again.   ║
-    echo    ╚═══════════════════════════════════════════╝
+) else (
+    echo    [OK] Docker is running
+    docker compose up -d redis 2>nul
+    echo    [OK] Redis cache started
     echo.
-    pause
-    exit /b 1
 )
-echo    [OK] Docker is running
-echo.
 
 :: ============================================
-:: [2/5] START DATABASE + CACHE
+:: [2/5] CHECK .env FILE EXISTS
 :: ============================================
-echo [2/5] Starting Database + Cache...
-docker compose up -d postgres redis 2>nul
-if %errorlevel% neq 0 (
-    echo    WARNING: Docker compose had an issue, but continuing...
+echo [2/5] Checking configuration...
+if not exist "backend\.env" (
+    echo    WARNING: backend\.env not found!
+    echo    Copy .env.example to backend\.env and add your Supabase URL.
+    echo    See FRESH-PC-SETUP.md for instructions.
+    echo.
+) else (
+    echo    [OK] Config file found
+    echo.
 )
-echo    [OK] PostgreSQL + Redis started
-echo.
 
 :: ============================================
-:: [3/5] KILL ANY ZOMBIE PROCESSES ON PORTS
+:: [3/5] KILL ZOMBIE PROCESSES
 :: ============================================
 echo [3/5] Clearing old processes...
 for /f "tokens=5" %%a in ('netstat -ano ^| findstr :3001 ^| findstr LISTENING 2^>nul') do (
@@ -82,27 +82,27 @@ if %errorlevel% neq 0 (
     start "" /min ollama serve
     timeout /t 3 /nobreak >nul
 )
-echo    [OK] Ollama ready
+echo    [OK] Ollama ready (Qwen 3)
 echo.
 
 :: ============================================
 :: DONE
 :: ============================================
 echo.
-echo  ╔══════════════════════════════════════════════╗
-echo  ║        ALL SERVICES STARTED!                ║
-echo  ╠══════════════════════════════════════════════╣
-echo  ║  Backend:    http://localhost:3001           ║
-echo  ║  AI Engine:  http://localhost:8000           ║
-echo  ║  AI Docs:    http://localhost:8000/docs      ║
-echo  ║  Health:     http://localhost:3001/health    ║
-echo  ╠══════════════════════════════════════════════╣
-echo  ║  To use app on phone:                       ║
-echo  ║  1. Open new terminal                       ║
-echo  ║  2. cd Desktop\wealthmaster\mobile          ║
-echo  ║  3. npx expo start                          ║
-echo  ║  4. Scan QR with Expo Go app                ║
-echo  ╚══════════════════════════════════════════════╝
+echo  ╔══════════════════════════════════════════════════╗
+echo  ║         ALL SERVICES STARTED!                   ║
+echo  ╠══════════════════════════════════════════════════╣
+echo  ║  Backend:    http://localhost:3001               ║
+echo  ║  AI Engine:  http://localhost:8000               ║
+echo  ║  AI Docs:    http://localhost:8000/docs          ║
+echo  ║  Database:   Supabase Cloud (always available)  ║
+echo  ╠══════════════════════════════════════════════════╣
+echo  ║  To start Mobile App:                           ║
+echo  ║  1. Open new terminal                           ║
+echo  ║  2. cd Desktop\wealthmaster\mobile              ║
+echo  ║  3. npx expo start                              ║
+echo  ║  4. Scan QR with Expo Go                        ║
+echo  ╚══════════════════════════════════════════════════╝
 echo.
 echo  (This window can be minimized. Don't close it.)
 echo.
