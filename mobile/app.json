@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "WealthMaster",
+    "slug": "wealthmaster",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "wealthmaster",
+    "userInterfaceStyle": "dark",
+    "android": {
+      "package": "com.wealthmaster.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#0A0A0F"
+      }
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

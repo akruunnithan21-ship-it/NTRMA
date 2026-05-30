@@ -1,3 +1,48 @@
+# Dependencies
 node_modules/
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Environment
 .env
+.env.local
+.env.production
+
+# Build outputs
+dist/
+build/
+*.tsbuildinfo
+
+# Expo
+mobile/.expo/
+mobile/android/
+mobile/ios/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
 .DS_Store
+Thumbs.db
+
+# Database
+*.db
+*.sqlite
+
+# Docker volumes
+postgres_data/
+redis_data/
+
+# ML Models (large files)
+ai-engine/app/models/*.pkl
+ai-engine/app/models/*.pt
+ai-engine/app/data/market_cache/
+
+# Logs
+*.log
+logs/

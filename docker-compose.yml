@@ -1,0 +1,25 @@
+# WealthMaster Local Development Stack
+# 
+# DATABASE: Now uses Supabase (cloud) — no local PostgreSQL needed!
+# REDIS: Still local for caching stock prices (fast, temporary data)
+#
+# Run: docker compose up -d
+
+services:
+  # Redis Cache (for stock price caching only — data is temporary)
+  redis:
+    image: redis:7-alpine
+    container_name: wm-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  redis_data:

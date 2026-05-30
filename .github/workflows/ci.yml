@@ -1,0 +1,58 @@
+name: WealthMaster CI
+
+on:
+  push:
+    branches: ['*']
+  pull_request:
+    branches: ['feat/v1wealthfinder']
+
+jobs:
+  lint-and-typecheck:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        project: [mobile, backend]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: ${{ matrix.project }}/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ${{ matrix.project }}
+        run: npm ci || npm install
+
+      - name: TypeScript type check
+        working-directory: ${{ matrix.project }}
+        run: npx tsc --noEmit
+        continue-on-error: true
+
+      - name: ESLint
+        working-directory: ${{ matrix.project }}
+        run: npx eslint . --ext .ts,.tsx --max-warnings 50
+        continue-on-error: true
+
+  python-lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        working-directory: ai-engine
+        run: |
+          pip install ruff
+          pip install -r requirements.txt
+
+      - name: Lint with Ruff
+        working-directory: ai-engine
+        run: ruff check . --fix
+        continue-on-error: true

@@ -1,0 +1,36 @@
+# WealthMaster AI Engine Dependencies
+# Works with Python 3.10 - 3.14+
+
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+pydantic==2.10.0
+python-multipart==0.0.29
+
+# Market Data
+yfinance==0.2.48
+pandas==2.2.3
+numpy==1.26.4
+
+# Technical Analysis (ta works with all Python versions, pandas-ta does NOT work with 3.14)
+ta==0.11.0
+
+# Machine Learning
+scikit-learn==1.6.1
+
+# NLP / Sentiment
+textblob==0.18.0
+
+# Ollama Client
+ollama==0.4.4
+httpx==0.28.1
+
+# News
+gnews==0.3.7
+feedparser==6.0.11
+
+# Utilities
+python-dotenv==1.0.1
+pyyaml==6.0.2
+schedule==1.2.2
+redis==5.2.1
+pytz==2024.2
