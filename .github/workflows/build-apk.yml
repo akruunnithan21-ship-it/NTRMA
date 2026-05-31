@@ -1,0 +1,84 @@
+name: Build Android APK
+
+# ═══════════════════════════════════════════════════════════════
+# Triggers: push to main branches OR manual button click
+# ═══════════════════════════════════════════════════════════════
+on:
+  push:
+    branches:
+      - phase3/market-data
+      - fix/native-apk-build
+    paths:
+      - 'mobile/**'
+      - '.github/workflows/build-apk.yml'
+  workflow_dispatch: # Manual "Run workflow" button in GitHub Actions tab
+
+jobs:
+  build-apk:
+    name: Build APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      # ─── Checkout code ───
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ─── Setup Node.js 22 LTS ───
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: mobile/package-lock.json
+
+      # ─── Setup Java 17 (Android builds need it) ───
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      # ─── Setup Android SDK ───
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      # ─── Install mobile dependencies ───
+      - name: Install dependencies
+        working-directory: mobile
+        run: npm install --legacy-peer-deps
+
+      # ─── Generate native Android project from Expo config ───
+      - name: Generate native Android project (expo prebuild)
+        working-directory: mobile
+        run: npx expo prebuild -p android --clean --no-install
+
+      # ─── Build the APK ───
+      - name: Build Release APK
+        working-directory: mobile/android
+        run: ./gradlew assembleRelease --no-daemon
+
+      # ─── Rename APK for easy identification ───
+      - name: Rename APK
+        run: |
+          APK_PATH="mobile/android/app/build/outputs/apk/release/app-release.apk"
+          if [ -f "$APK_PATH" ]; then
+            cp "$APK_PATH" "WealthMaster-v$(date +%Y%m%d-%H%M).apk"
+          else
+            echo "APK not found at expected path, searching..."
+            find mobile/android -name "*.apk" -type f
+            # Try unsigned variant
+            UNSIGNED="mobile/android/app/build/outputs/apk/release/app-release-unsigned.apk"
+            if [ -f "$UNSIGNED" ]; then
+              cp "$UNSIGNED" "WealthMaster-v$(date +%Y%m%d-%H%M).apk"
+            fi
+          fi
+
+      # ─── Upload APK as downloadable artifact ───
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: WealthMaster-APK
+          path: WealthMaster-*.apk
+          if-no-files-found: error
+          retention-days: 90
