@@ -51,6 +51,4 @@ logs/
 mobile/play-store-key.json
 mobile/.easignore
 
-# Lock files (generated per-machine)
-mobile/package-lock.json
-backend/package-lock.json
+

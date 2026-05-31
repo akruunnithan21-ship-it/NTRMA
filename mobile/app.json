@@ -6,9 +6,6 @@
     "orientation": "portrait",
     "scheme": "wealthmaster",
     "userInterfaceStyle": "dark",
-    "runtimeVersion": {
-      "policy": "appVersion"
-    },
     "android": {
       "package": "com.wealthmaster.app",
       "versionCode": 1,
@@ -35,14 +32,6 @@
     ],
     "experiments": {
       "typedRoutes": true
-    },
-    "extra": {
-      "eas": {
-        "projectId": "your-project-id-here"
-      }
-    },
-    "updates": {
-      "url": "https://u.expo.dev/your-project-id-here"
     }
   }
 }
