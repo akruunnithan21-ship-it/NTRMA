@@ -1,4 +1,6 @@
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // ===== TYPES =====
 
@@ -35,6 +37,7 @@ export type DebtCategory =
   | 'emi_pending' | 'other_debt';
 
 export type ViewMode = 'both' | 'assets_only' | 'debts_only';
+
 
 interface NetWorthState {
   assets: Asset[];
@@ -82,54 +85,68 @@ export const DEBT_CATEGORIES: { id: DebtCategory; name: string; icon: string; co
   { id: 'other_debt', name: 'Other Debt', icon: '📋', color: '#6B7280' },
 ];
 
-export const useNetWorthStore = create<NetWorthState>((set, get) => ({
-  assets: [
-    { id: 'a1', name: 'Savings Account (SBI)', category: 'bank_account', value: 8500, date: '2026-01-01' },
-    { id: 'a2', name: 'Cash in hand', category: 'cash_savings', value: 1200, date: '2026-05-28' },
-    { id: 'a3', name: 'Tata Motors (2 shares)', category: 'stocks', value: 1905, purchaseValue: 1800, date: '2026-04-15' },
-    { id: 'a4', name: 'Axis Small Cap SIP', category: 'mutual_funds', value: 3200, purchaseValue: 3000, date: '2026-02-01' },
-  ],
-  debts: [
-    { id: 'd1', name: 'Borrowed from brother', category: 'family_borrowed', totalAmount: 5000, remainingAmount: 3000, note: 'Return by July' },
-    { id: 'd2', name: 'Amazon Pay Later', category: 'emi_pending', totalAmount: 2400, remainingAmount: 1600, emiAmount: 800, dueDate: '2026-06-05' },
-  ],
-  viewMode: 'both',
 
-  addAsset: (asset) => set((s) => ({ assets: [...s.assets, { ...asset, id: `a_${Date.now()}` }] })),
-  updateAsset: (id, updates) => set((s) => ({ assets: s.assets.map((a) => a.id === id ? { ...a, ...updates } : a) })),
-  deleteAsset: (id) => set((s) => ({ assets: s.assets.filter((a) => a.id !== id) })),
-  addDebt: (debt) => set((s) => ({ debts: [...s.debts, { ...debt, id: `d_${Date.now()}` }] })),
-  updateDebt: (id, updates) => set((s) => ({ debts: s.debts.map((d) => d.id === id ? { ...d, ...updates } : d) })),
-  deleteDebt: (id) => set((s) => ({ debts: s.debts.filter((d) => d.id !== id) })),
-  setViewMode: (mode) => set({ viewMode: mode }),
+export const useNetWorthStore = create<NetWorthState>()(
+  persist(
+    (set, get) => ({
+      assets: [
+        { id: 'a1', name: 'Savings Account (SBI)', category: 'bank_account', value: 8500, date: '2026-01-01' },
+        { id: 'a2', name: 'Cash in hand', category: 'cash_savings', value: 1200, date: '2026-05-28' },
+        { id: 'a3', name: 'Tata Motors (2 shares)', category: 'stocks', value: 1905, purchaseValue: 1800, date: '2026-04-15' },
+        { id: 'a4', name: 'Axis Small Cap SIP', category: 'mutual_funds', value: 3200, purchaseValue: 3000, date: '2026-02-01' },
+      ],
+      debts: [
+        { id: 'd1', name: 'Borrowed from brother', category: 'family_borrowed', totalAmount: 5000, remainingAmount: 3000, note: 'Return by July' },
+        { id: 'd2', name: 'Amazon Pay Later', category: 'emi_pending', totalAmount: 2400, remainingAmount: 1600, emiAmount: 800, dueDate: '2026-06-05' },
+      ],
+      viewMode: 'both',
 
-  getTotalAssets: () => get().assets.reduce((sum, a) => sum + a.value, 0),
-  getTotalDebts: () => get().debts.reduce((sum, d) => sum + d.remainingAmount, 0),
-  getNetWorth: () => get().getTotalAssets() - get().getTotalDebts(),
+      addAsset: (asset) => set((s) => ({ assets: [...s.assets, { ...asset, id: `a_${Date.now()}` }] })),
+      updateAsset: (id, updates) => set((s) => ({ assets: s.assets.map((a) => a.id === id ? { ...a, ...updates } : a) })),
+      deleteAsset: (id) => set((s) => ({ assets: s.assets.filter((a) => a.id !== id) })),
+      addDebt: (debt) => set((s) => ({ debts: [...s.debts, { ...debt, id: `d_${Date.now()}` }] })),
+      updateDebt: (id, updates) => set((s) => ({ debts: s.debts.map((d) => d.id === id ? { ...d, ...updates } : d) })),
+      deleteDebt: (id) => set((s) => ({ debts: s.debts.filter((d) => d.id !== id) })),
+      setViewMode: (mode) => set({ viewMode: mode }),
 
-  getAssetsByCategory: () => {
-    const map: Record<string, { total: number; count: number }> = {};
-    get().assets.forEach((a) => {
-      if (!map[a.category]) map[a.category] = { total: 0, count: 0 };
-      map[a.category].total += a.value;
-      map[a.category].count += 1;
-    });
-    return Object.entries(map)
-      .map(([category, data]) => ({ category: category as AssetCategory, ...data }))
-      .sort((a, b) => b.total - a.total);
-  },
+      getTotalAssets: () => get().assets.reduce((sum, a) => sum + a.value, 0),
+      getTotalDebts: () => get().debts.reduce((sum, d) => sum + d.remainingAmount, 0),
+      getNetWorth: () => get().getTotalAssets() - get().getTotalDebts(),
 
-  getDebtsByCategory: () => {
-    const map: Record<string, { total: number; count: number }> = {};
-    get().debts.forEach((d) => {
-      if (!map[d.category]) map[d.category] = { total: 0, count: 0 };
-      map[d.category].total += d.remainingAmount;
-      map[d.category].count += 1;
-    });
-    return Object.entries(map)
-      .map(([category, data]) => ({ category: category as DebtCategory, ...data }))
-      .sort((a, b) => b.total - a.total);
-  },
+      getAssetsByCategory: () => {
+        const map: Record<string, { total: number; count: number }> = {};
+        get().assets.forEach((a) => {
+          if (!map[a.category]) map[a.category] = { total: 0, count: 0 };
+          map[a.category].total += a.value;
+          map[a.category].count += 1;
+        });
+        return Object.entries(map)
+          .map(([category, data]) => ({ category: category as AssetCategory, ...data }))
+          .sort((a, b) => b.total - a.total);
+      },
 
-  getMonthlyDebtObligation: () => get().debts.reduce((sum, d) => sum + (d.emiAmount || 0), 0),
-}));
+      getDebtsByCategory: () => {
+        const map: Record<string, { total: number; count: number }> = {};
+        get().debts.forEach((d) => {
+          if (!map[d.category]) map[d.category] = { total: 0, count: 0 };
+          map[d.category].total += d.remainingAmount;
+          map[d.category].count += 1;
+        });
+        return Object.entries(map)
+          .map(([category, data]) => ({ category: category as DebtCategory, ...data }))
+          .sort((a, b) => b.total - a.total);
+      },
+
+      getMonthlyDebtObligation: () => get().debts.reduce((sum, d) => sum + (d.emiAmount || 0), 0),
+    }),
+    {
+      name: 'wealthmaster-networth',
+      storage: createJSONStorage(() => AsyncStorage),
+      partialize: (state) => ({
+        assets: state.assets,
+        debts: state.debts,
+        viewMode: state.viewMode,
+      }),
+    }
+  )
+);
