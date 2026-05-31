@@ -37,14 +37,8 @@ jobs:
       - name: Fix Kotlin/Compose version mismatch
         working-directory: mobile/android
         run: |
-          # Bump Kotlin from 1.9.24 to 1.9.25 (what Compose Compiler 1.5.15 requires)
-          sed -i 's/kotlinVersion = "1.9.24"/kotlinVersion = "1.9.25"/' build.gradle
-          # Fallback: also try the ext block format
-          sed -i 's/kotlin_version = "1.9.24"/kotlin_version = "1.9.25"/' build.gradle
-          # And the buildscript classpath plugin version
-          sed -i 's/org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.24/org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.25/' build.gradle
-          echo "Done. Kotlin version patched to 1.9.25"
-          grep -i "kotlin" build.gradle | head -5
+          echo "android.kotlinVersion=1.9.25" >> gradle.properties
+          echo "Fixed: set android.kotlinVersion=1.9.25 in gradle.properties"
 
       - name: Build debug APK
         working-directory: mobile/android
