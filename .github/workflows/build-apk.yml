@@ -35,10 +35,14 @@ jobs:
         run: npx expo prebuild -p android --clean --no-install
 
       - name: Fix Kotlin/Compose version mismatch
-        working-directory: mobile
+        working-directory: mobile/android
         run: |
-          sed -i 's/: "1.9.24"/: "1.9.25"/' node_modules/expo-modules-core/android/ExpoModulesCorePlugin.gradle
-          echo "Patched ExpoModulesCorePlugin.gradle fallback: 1.9.24 -> 1.9.25"
+          # Problem: root build.gradle sets kotlinVersion=1.9.25, so expo-modules-core
+          # picks Compose Compiler 1.5.15. But the actual kotlin-gradle-plugin resolved
+          # by Gradle is 1.9.24 (from react-native). Fix: pin kotlin plugin to 1.9.25.
+          sed -i "s/classpath('org.jetbrains.kotlin:kotlin-gradle-plugin')/classpath('org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.25')/" build.gradle
+          echo "Pinned kotlin-gradle-plugin to 1.9.25 in build.gradle"
+          grep "kotlin" build.gradle
 
       - name: Build debug APK
         working-directory: mobile/android
