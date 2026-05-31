@@ -57,7 +57,7 @@ export async function aiRoutes(app: FastifyInstance) {
     // TODO: Check Ollama connection
     return {
       ollamaConnected: false,
-      model: 'mistral:7b',
+      model: 'qwen2.5:7b',
       lastAnalysis: null,
       nextScheduledRun: null,
     };
