@@ -44,9 +44,9 @@ jobs:
           echo "Pinned kotlin-gradle-plugin to 1.9.25 in build.gradle"
           grep "kotlin" build.gradle
 
-      - name: Build debug APK
+      - name: Build release APK (JS bundled inside, no dev server needed)
         working-directory: mobile/android
-        run: ./gradlew assembleDebug --no-daemon
+        run: ./gradlew assembleRelease --no-daemon -x lintVitalRelease
 
       - name: Find and rename APK
         run: |
