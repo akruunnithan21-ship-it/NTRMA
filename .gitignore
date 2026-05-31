@@ -46,3 +46,9 @@ ai-engine/app/data/market_cache/
 # Logs
 *.log
 logs/
+
+# EAS / Play Store
+mobile/play-store-key.json
+mobile/.easignore
+
+
