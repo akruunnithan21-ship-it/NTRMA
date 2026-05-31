@@ -36,7 +36,24 @@ jobs:
 
       - name: Fix Kotlin/Compose version mismatch
         working-directory: mobile/android
-        run: echo "kotlin.suppressKotlinVersionCompatibilityCheck=true" >> gradle.properties
+        run: |
+          # The Compose Compiler plugin checks Kotlin version. We suppress it.
+          # Add the suppression to root build.gradle as a subprojects block
+          cat >> build.gradle << 'EOF'
+
+          subprojects {
+              afterEvaluate {
+                  tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+                      kotlinOptions {
+                          freeCompilerArgs += [
+                              "-P",
+                              "plugin:androidx.compose.compiler.plugins.kotlin:suppressKotlinVersionCompatibilityCheck=1.9.24"
+                          ]
+                      }
+                  }
+              }
+          }
+          EOF
 
       - name: Build debug APK
         working-directory: mobile/android
