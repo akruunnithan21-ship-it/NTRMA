@@ -35,10 +35,10 @@ jobs:
         run: npx expo prebuild -p android --clean --no-install
 
       - name: Fix Kotlin/Compose version mismatch
-        working-directory: mobile/android
+        working-directory: mobile
         run: |
-          echo "android.kotlinVersion=1.9.25" >> gradle.properties
-          echo "Fixed: set android.kotlinVersion=1.9.25 in gradle.properties"
+          sed -i 's/: "1.9.24"/: "1.9.25"/' node_modules/expo-modules-core/android/ExpoModulesCorePlugin.gradle
+          echo "Patched ExpoModulesCorePlugin.gradle fallback: 1.9.24 -> 1.9.25"
 
       - name: Build debug APK
         working-directory: mobile/android
