@@ -1,0 +1,64 @@
+name: Build Android APK
+
+on:
+  push:
+    branches:
+      - phase3/market-data
+      - fix/native-apk-build
+      - feat/ui-overhaul-native-build
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Install dependencies
+        working-directory: mobile
+        run: npm install --legacy-peer-deps
+
+      - name: Expo prebuild (generate native Android project)
+        working-directory: mobile
+        run: npx expo prebuild -p android --clean --no-install
+
+      - name: Fix Kotlin/Compose version mismatch
+        working-directory: mobile/android
+        run: |
+          sed -i "s/classpath('org.jetbrains.kotlin:kotlin-gradle-plugin')/classpath('org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.25')/" build.gradle
+          echo "android.kotlinVersion=1.9.25" >> gradle.properties
+          echo "Pinned kotlin-gradle-plugin to 1.9.25"
+
+      - name: Build release APK
+        working-directory: mobile/android
+        run: ./gradlew assembleRelease --no-daemon -x lintVitalRelease
+
+      - name: Find and upload APK
+        run: |
+          APK=$(find mobile/android -name "*.apk" -type f | head -1)
+          if [ -z "$APK" ]; then
+            echo "ERROR: No APK found!"
+            exit 1
+          fi
+          echo "Found APK: $APK"
+          cp "$APK" WealthMaster.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: WealthMaster-APK
+          path: WealthMaster.apk
+          if-no-files-found: error
+          retention-days: 90
