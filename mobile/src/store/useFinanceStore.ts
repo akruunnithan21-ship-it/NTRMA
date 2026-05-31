@@ -1,4 +1,6 @@
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { startOfMonth, endOfMonth, isWithinInterval, parseISO, subMonths } from 'date-fns';
 import { EXPENSE_CATEGORIES } from '@/constants/categories';
 
@@ -89,20 +91,11 @@ interface FinanceState {
   generateInsights: () => SpendingInsight[];
 }
 
-export const useFinanceStore = create<FinanceState>((set, get) => ({
-  transactions: [
-    // Seed data for demo
-    { id: '1', type: 'income', amount: 13000, category: 'salary', name: 'May Salary', date: '2026-05-28T09:00:00Z', paymentMethod: 'net_banking', necessityLevel: 5, isRecurring: true, recurrence: 'monthly', createdAt: '2026-05-28T09:00:00Z' },
-    { id: '2', type: 'expense', amount: 5000, category: 'rent', name: 'Room Rent', date: '2026-05-01T10:00:00Z', paymentMethod: 'upi', necessityLevel: 5, isRecurring: true, recurrence: 'monthly', createdAt: '2026-05-01T10:00:00Z' },
-    { id: '3', type: 'expense', amount: 345, category: 'dining', name: 'Zomato Biryani', date: '2026-05-28T13:00:00Z', paymentMethod: 'upi', necessityLevel: 2, createdAt: '2026-05-28T13:00:00Z' },
-    { id: '4', type: 'expense', amount: 200, category: 'transport', name: 'Metro Card', date: '2026-05-27T08:00:00Z', paymentMethod: 'upi', necessityLevel: 4, createdAt: '2026-05-27T08:00:00Z' },
-    { id: '5', type: 'expense', amount: 199, category: 'subscriptions', name: 'Netflix', date: '2026-05-15T00:00:00Z', paymentMethod: 'card', necessityLevel: 2, isRecurring: true, recurrence: 'monthly', createdAt: '2026-05-15T00:00:00Z' },
-    { id: '6', type: 'expense', amount: 2800, category: 'groceries', name: 'Monthly Groceries DMart', date: '2026-05-05T11:00:00Z', paymentMethod: 'upi', necessityLevel: 5, createdAt: '2026-05-05T11:00:00Z' },
-    { id: '7', type: 'expense', amount: 650, category: 'transport', name: 'Ola rides', date: '2026-05-20T18:00:00Z', paymentMethod: 'upi', necessityLevel: 3, createdAt: '2026-05-20T18:00:00Z' },
-    { id: '8', type: 'expense', amount: 499, category: 'subscriptions', name: 'Spotify Premium', date: '2026-05-22T00:00:00Z', paymentMethod: 'card', necessityLevel: 1, isRecurring: true, recurrence: 'monthly', createdAt: '2026-05-22T00:00:00Z' },
-    { id: '9', type: 'expense', amount: 120, category: 'dining', name: 'Chai & Snacks', date: '2026-05-26T16:00:00Z', paymentMethod: 'cash', necessityLevel: 2, createdAt: '2026-05-26T16:00:00Z' },
-    { id: '10', type: 'expense', amount: 249, category: 'mobile_internet', name: 'Jio Recharge', date: '2026-05-10T09:00:00Z', paymentMethod: 'upi', necessityLevel: 4, isRecurring: true, recurrence: 'monthly', createdAt: '2026-05-10T09:00:00Z' },
-  ],
+export const useFinanceStore = create<FinanceState>()(
+  persist(
+    (set, get) => ({
+  // Starts EMPTY — user records their own income/expenses (persisted to device).
+  transactions: [],
 
   budgets: [
     { category: 'rent', limit: 5000, color: '#FF6B35' },
@@ -118,12 +111,7 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
     { category: 'bills', limit: 600, color: '#F59E0B' },
   ],
 
-  recurringTemplates: [
-    { id: 'r1', type: 'expense', category: 'rent', name: 'Room Rent', amount: 5000, frequency: 'monthly', nextDueDate: '2026-06-01', active: true, paymentMethod: 'upi' },
-    { id: 'r2', type: 'expense', category: 'subscriptions', name: 'Netflix', amount: 199, frequency: 'monthly', nextDueDate: '2026-06-15', active: true, paymentMethod: 'card' },
-    { id: 'r3', type: 'expense', category: 'mobile_internet', name: 'Jio Recharge', amount: 249, frequency: 'monthly', nextDueDate: '2026-06-10', active: true, paymentMethod: 'upi' },
-    { id: 'r4', type: 'income', category: 'salary', name: 'Monthly Salary', amount: 13000, frequency: 'monthly', nextDueDate: '2026-06-28', active: true, paymentMethod: 'net_banking' },
-  ],
+  recurringTemplates: [],
 
   insights: [],
   budgetCycleStartDay: 28, // Salary day
@@ -396,4 +384,16 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
 
     return insights;
   },
-}));
+    }),
+    {
+      name: 'wm-finance',
+      storage: createJSONStorage(() => AsyncStorage),
+      partialize: (s) => ({
+        transactions: s.transactions,
+        budgets: s.budgets,
+        recurringTemplates: s.recurringTemplates,
+        budgetCycleStartDay: s.budgetCycleStartDay,
+      }),
+    }
+  )
+);

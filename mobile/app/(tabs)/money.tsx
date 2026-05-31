@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import {
@@ -22,6 +22,15 @@ export default function MoneyScreen() {
   const necessityBreakdown = useFinanceStore((s) => s.getNecessityBreakdown());
   const insights = useFinanceStore((s) => s.generateInsights());
   const recurringTemplates = useFinanceStore((s) => s.recurringTemplates);
+  const deleteTransaction = useFinanceStore((s) => s.deleteTransaction);
+
+  const confirmDeleteTx = (id: string, name: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    Alert.alert('Delete transaction', `Delete "${name}"?`, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Delete', style: 'destructive', onPress: () => deleteTransaction(id) },
+    ]);
+  };
 
   const monthName = new Date().toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
 
@@ -207,7 +216,7 @@ export default function MoneyScreen() {
           {recentTxns.map((tx) => {
             const cat = getCategoryById(tx.category);
             return (
-              <View key={tx.id} style={styles.transactionItem}>
+              <TouchableOpacity key={tx.id} style={styles.transactionItem} activeOpacity={0.7} onLongPress={() => confirmDeleteTx(tx.id, tx.name)}>
                 <View style={styles.txLeft}>
                   <Text style={styles.txIcon}>{cat?.icon}</Text>
                   <View>
@@ -221,7 +230,7 @@ export default function MoneyScreen() {
                 <Text style={[styles.txAmount, { color: tx.type === 'income' ? colors.success : colors.textPrimary }]}>
                   {tx.type === 'income' ? '+' : '-'}₹{tx.amount.toLocaleString('en-IN')}
                 </Text>
-              </View>
+              </TouchableOpacity>
             );
           })}
         </View>

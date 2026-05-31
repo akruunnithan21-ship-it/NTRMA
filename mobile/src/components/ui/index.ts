@@ -12,3 +12,4 @@ export { ScreenHeader, IconButton } from './ScreenHeader';
 export { StatusPill } from './StatusPill';
 export { Skeleton, SkeletonLines } from './Skeleton';
 export { AuroraBackground } from './AuroraBackground';
+export { OfflineBanner } from './OfflineBanner';

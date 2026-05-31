@@ -1,5 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import {
+  Alert,
   RefreshControl,
   StyleSheet,
   Text,
@@ -37,6 +38,7 @@ export default function MarketsScreen() {
 
   const indices = useMarketStore((s) => s.indices);
   const watchlist = useMarketStore((s) => s.watchlist);
+  const removeFromWatchlist = useMarketStore((s) => s.removeFromWatchlist);
   const { isLoading, nseOpen, usOpen, lastRefresh, refresh } = useMarketData();
   const connStatus = useConnectionStore((s) => s.status);
 
@@ -72,6 +74,14 @@ export default function MarketsScreen() {
   const submitSearch = () => {
     const q = query.trim().toUpperCase();
     if (q.length >= 1) openStock(q, 'NSE');
+  };
+
+  const confirmRemove = (symbol: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    Alert.alert('Remove from watchlist', `Remove ${symbol}?`, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Remove', style: 'destructive', onPress: () => removeFromWatchlist(symbol) },
+    ]);
   };
 
   return (
@@ -175,7 +185,7 @@ export default function MarketsScreen() {
             </TouchableOpacity>
           )}
           {filtered.map((stock) => (
-            <TouchableOpacity key={`${stock.symbol}_${stock.exchange}`} activeOpacity={0.8} onPress={() => openStock(stock.symbol, stock.exchange)}>
+            <TouchableOpacity key={`${stock.symbol}_${stock.exchange}`} activeOpacity={0.8} onPress={() => openStock(stock.symbol, stock.exchange)} onLongPress={() => confirmRemove(stock.symbol)}>
               <GlassCard animate={false} blur={false} style={styles.stockRow}>
                 <View style={styles.stockLeft}>
                   <Text style={styles.stockSymbol}>{stock.symbol}</Text>

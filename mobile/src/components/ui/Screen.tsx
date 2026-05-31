@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { SafeAreaView, Edge } from 'react-native-safe-area-context';
 import { AuroraBackground } from './AuroraBackground';
+import { OfflineBanner } from './OfflineBanner';
 import { colors, spacing, layout } from '@/theme';
 
 interface ScreenProps {
@@ -53,6 +54,7 @@ export const Screen: React.FC<ScreenProps> = ({
       {aurora && <AuroraBackground />}
       <SafeAreaView style={styles.safe} edges={edges}>
         {header}
+        <OfflineBanner />
         {scroll ? (
           <ScrollView
             showsVerticalScrollIndicator={false}

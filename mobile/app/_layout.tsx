@@ -20,6 +20,7 @@ import {
 import { colors } from '@/theme';
 import { queryClient } from '@/services/queryClient';
 import { useConnectionStore } from '@/store/useConnectionStore';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 // Keep the native splash visible until our fonts are ready.
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -66,23 +67,25 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
           <StatusBar style="light" backgroundColor={colors.background} />
-          <Stack
-            screenOptions={{
-              headerShown: false,
-              contentStyle: { backgroundColor: colors.background },
-              animation: 'slide_from_right',
-            }}
-          >
-            <Stack.Screen name="(auth)" options={{ animation: 'fade' }} />
-            <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />
-            <Stack.Screen
-              name="(modals)"
-              options={{
-                presentation: 'modal',
-                animation: 'slide_from_bottom',
+          <ErrorBoundary>
+            <Stack
+              screenOptions={{
+                headerShown: false,
+                contentStyle: { backgroundColor: colors.background },
+                animation: 'slide_from_right',
               }}
-            />
-          </Stack>
+            >
+              <Stack.Screen name="(auth)" options={{ animation: 'fade' }} />
+              <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />
+              <Stack.Screen
+                name="(modals)"
+                options={{
+                  presentation: 'modal',
+                  animation: 'slide_from_bottom',
+                }}
+              />
+            </Stack>
+          </ErrorBoundary>
         </QueryClientProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

@@ -1,4 +1,6 @@
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export type StrategyMode = 'aggressive' | 'balanced' | 'protect';
 
@@ -39,17 +41,26 @@ interface AIState {
   setOllamaStatus: (connected: boolean) => void;
 }
 
-export const useAIStore = create<AIState>((set) => ({
-  strategyMode: 'aggressive',
-  todaySignal: null,
-  activeSignals: [],
-  paperTradingStats: {
-    totalSignals: 0,
-    winRate: 0,
-    totalReturn: 0,
-  },
-  ollamaConnected: false,
-  setStrategyMode: (mode) => set({ strategyMode: mode }),
-  setTodaySignal: (signal) => set({ todaySignal: signal }),
-  setOllamaStatus: (connected) => set({ ollamaConnected: connected }),
-}));
+export const useAIStore = create<AIState>()(
+  persist(
+    (set) => ({
+      strategyMode: 'aggressive',
+      todaySignal: null,
+      activeSignals: [],
+      paperTradingStats: {
+        totalSignals: 0,
+        winRate: 0,
+        totalReturn: 0,
+      },
+      ollamaConnected: false,
+      setStrategyMode: (mode) => set({ strategyMode: mode }),
+      setTodaySignal: (signal) => set({ todaySignal: signal }),
+      setOllamaStatus: (connected) => set({ ollamaConnected: connected }),
+    }),
+    {
+      name: 'wm-ai',
+      storage: createJSONStorage(() => AsyncStorage),
+      partialize: (s) => ({ strategyMode: s.strategyMode }),
+    }
+  )
+);
