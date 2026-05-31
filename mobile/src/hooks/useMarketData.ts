@@ -33,6 +33,7 @@ export function useMarketData() {
   });
 
   const setIndices = useMarketStore((s) => s.setIndices);
+  const updatePrices = useMarketStore((s) => s.updatePrices);
   const watchlist = useMarketStore((s) => s.watchlist);
   const refreshInterval = useRef<NodeJS.Timeout | null>(null);
 
@@ -67,22 +68,22 @@ export function useMarketData() {
       const prices = response.data.prices;
 
       if (prices && prices.length > 0) {
-        // Update watchlist in store with fresh prices
-        const store = useMarketStore.getState();
-        prices.forEach((p: any) => {
-          if (!p.error && p.price > 0) {
-            const existing = store.watchlist.find((w) => w.symbol === p.symbol);
-            if (existing) {
-              // Update in place via store method would be ideal
-              // For now we just note the data is fresh
-            }
-          }
-        });
+        // Push fresh prices into the store (in-place update of the watchlist).
+        updatePrices(
+          prices
+            .filter((p: any) => !p.error && p.price > 0)
+            .map((p: any) => ({
+              symbol: p.symbol,
+              price: p.price,
+              change: p.change,
+              change_percent: p.change_percent,
+            }))
+        );
       }
     } catch (error) {
       // Silently fail - watchlist shows last known prices
     }
-  }, [watchlist]);
+  }, [watchlist, updatePrices]);
 
   // Fetch market status
   const fetchMarketStatus = useCallback(async () => {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Alert } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { GlassCard, AnimatedNumber } from '@/components/ui';
@@ -22,6 +22,24 @@ export const NetWorthCard: React.FC = () => {
   const assetsByCategory = useNetWorthStore((s) => s.getAssetsByCategory());
   const debtsByCategory = useNetWorthStore((s) => s.getDebtsByCategory());
   const monthlyObligation = useNetWorthStore((s) => s.getMonthlyDebtObligation());
+  const deleteAsset = useNetWorthStore((s) => s.deleteAsset);
+  const deleteDebt = useNetWorthStore((s) => s.deleteDebt);
+
+  const confirmDeleteAsset = (id: string, name: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    Alert.alert('Delete asset', `Remove "${name}"?`, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Delete', style: 'destructive', onPress: () => deleteAsset(id) },
+    ]);
+  };
+
+  const confirmDeleteDebt = (id: string, name: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    Alert.alert('Delete debt', `Remove "${name}"?`, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Delete', style: 'destructive', onPress: () => deleteDebt(id) },
+    ]);
+  };
 
   const handleToggle = (mode: ViewMode) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -80,7 +98,7 @@ export const NetWorthCard: React.FC = () => {
             const catConfig = ASSET_CATEGORIES.find((c) => c.id === asset.category);
             const gain = asset.purchaseValue ? asset.value - asset.purchaseValue : 0;
             return (
-              <View key={asset.id} style={styles.itemRow}>
+              <TouchableOpacity key={asset.id} style={styles.itemRow} activeOpacity={0.7} onLongPress={() => confirmDeleteAsset(asset.id, asset.name)}>
                 <View style={styles.itemLeft}>
                   <Text style={styles.itemIcon}>{catConfig?.icon}</Text>
                   <View style={styles.itemInfo}>
@@ -96,7 +114,7 @@ export const NetWorthCard: React.FC = () => {
                     </Text>
                   )}
                 </View>
-              </View>
+              </TouchableOpacity>
             );
           })}
         </View>
@@ -112,7 +130,7 @@ export const NetWorthCard: React.FC = () => {
               ? Math.round(((debt.totalAmount - debt.remainingAmount) / debt.totalAmount) * 100)
               : 0;
             return (
-              <View key={debt.id} style={styles.itemRow}>
+              <TouchableOpacity key={debt.id} style={styles.itemRow} activeOpacity={0.7} onLongPress={() => confirmDeleteDebt(debt.id, debt.name)}>
                 <View style={styles.itemLeft}>
                   <Text style={styles.itemIcon}>{catConfig?.icon}</Text>
                   <View style={styles.itemInfo}>
@@ -133,7 +151,7 @@ export const NetWorthCard: React.FC = () => {
                 <Text style={[styles.itemValue, { color: colors.danger }]}>
                   ₹{debt.remainingAmount.toLocaleString('en-IN')}
                 </Text>
-              </View>
+              </TouchableOpacity>
             );
           })}
           {monthlyObligation > 0 && (

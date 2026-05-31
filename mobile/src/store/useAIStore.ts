@@ -1,4 +1,6 @@
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export type StrategyMode = 'aggressive' | 'balanced' | 'protect';
 
@@ -39,37 +41,26 @@ interface AIState {
   setOllamaStatus: (connected: boolean) => void;
 }
 
-export const useAIStore = create<AIState>((set) => ({
-  strategyMode: 'aggressive',
-  todaySignal: {
-    id: '1',
-    symbol: 'TATAMOTORS',
-    direction: 'BUY',
-    confidence: 78,
-    entryPrice: 952.40,
-    targetPrice: 1105.60,
-    stopLoss: 895.00,
-    riskReward: '1:2.7',
-    timeHorizon: '2-4 weeks',
-    explanation: 'Strong momentum breakout above ₹940 resistance with 2.3x average volume. RSI at 62 (bullish, not overbought). Sector rotation favoring auto. FII net buyers in auto for 5 consecutive sessions.',
-    factors: {
-      technical: 82,
-      fundamental: 71,
-      sentiment: 76,
-      macro: 68,
-    },
-    chargesImpact: 11.34,
-    netExpectedReturn: 142,
-    createdAt: new Date().toISOString(),
-  },
-  activeSignals: [],
-  paperTradingStats: {
-    totalSignals: 23,
-    winRate: 74,
-    totalReturn: 18.4,
-  },
-  ollamaConnected: false,
-  setStrategyMode: (mode) => set({ strategyMode: mode }),
-  setTodaySignal: (signal) => set({ todaySignal: signal }),
-  setOllamaStatus: (connected) => set({ ollamaConnected: connected }),
-}));
+export const useAIStore = create<AIState>()(
+  persist(
+    (set) => ({
+      strategyMode: 'aggressive',
+      todaySignal: null,
+      activeSignals: [],
+      paperTradingStats: {
+        totalSignals: 0,
+        winRate: 0,
+        totalReturn: 0,
+      },
+      ollamaConnected: false,
+      setStrategyMode: (mode) => set({ strategyMode: mode }),
+      setTodaySignal: (signal) => set({ todaySignal: signal }),
+      setOllamaStatus: (connected) => set({ ollamaConnected: connected }),
+    }),
+    {
+      name: 'wm-ai',
+      storage: createJSONStorage(() => AsyncStorage),
+      partialize: (s) => ({ strategyMode: s.strategyMode }),
+    }
+  )
+);

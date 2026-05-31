@@ -1,20 +1,10 @@
 import React from 'react';
-import {
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  ViewStyle,
-  TextStyle,
-  ActivityIndicator,
-} from 'react-native';
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-  withSequence,
-} from 'react-native-reanimated';
+import { Text, TouchableOpacity, ViewStyle, ActivityIndicator, StyleSheet, View } from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
-import { colors, borderRadius, spacing, fonts, fontSize } from '@/theme';
+import { colors, borderRadius, spacing, fonts, fontSize, glow, spring } from '@/theme';
+import { Icon, IconName } from './Icon';
 
 interface NeonButtonProps {
   title: string;
@@ -24,6 +14,8 @@ interface NeonButtonProps {
   loading?: boolean;
   disabled?: boolean;
   icon?: React.ReactNode;
+  iconName?: IconName;
+  fullWidth?: boolean;
   style?: ViewStyle;
 }
 
@@ -37,21 +29,12 @@ export const NeonButton: React.FC<NeonButtonProps> = ({
   loading = false,
   disabled = false,
   icon,
+  iconName,
+  fullWidth = false,
   style,
 }) => {
   const scale = useSharedValue(1);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-
-  const handlePressIn = () => {
-    scale.value = withSpring(0.95, { damping: 15, stiffness: 400 });
-  };
-
-  const handlePressOut = () => {
-    scale.value = withSpring(1, { damping: 15, stiffness: 400 });
-  };
+  const animatedStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
 
   const handlePress = () => {
     if (disabled || loading) return;
@@ -59,68 +42,78 @@ export const NeonButton: React.FC<NeonButtonProps> = ({
     onPress();
   };
 
-  const variantColors = {
-    primary: { bg: colors.primary, text: colors.textInverse, glow: colors.primary },
-    success: { bg: colors.success, text: colors.textInverse, glow: colors.success },
-    danger: { bg: colors.danger, text: colors.textPrimary, glow: colors.danger },
-    ghost: { bg: 'transparent', text: colors.primary, glow: colors.primary },
+  const VARIANT = {
+    primary: { gradient: colors.gradientCyan, text: colors.textInverse, glow: colors.primary },
+    success: { gradient: colors.gradientGreen, text: colors.textInverse, glow: colors.success },
+    danger: { gradient: colors.gradientDanger, text: colors.textPrimary, glow: colors.danger },
+    ghost: { gradient: null, text: colors.primary, glow: colors.primary },
+  } as const;
+
+  const SIZES = {
+    sm: { padV: spacing.sm, padH: spacing.base, font: fontSize.sm, icon: 15 },
+    md: { padV: spacing.md, padH: spacing.xl, font: fontSize.base, icon: 18 },
+    lg: { padV: spacing.base, padH: spacing['2xl'], font: fontSize.lg, icon: 20 },
+  } as const;
+
+  const v = VARIANT[variant];
+  const s = SIZES[size];
+  const isGhost = variant === 'ghost';
+  const gradientColors = v.gradient ?? colors.gradientCyan;
+
+  const inner = (
+    <View style={styles.row}>
+      {loading ? (
+        <ActivityIndicator color={v.text} size="small" />
+      ) : (
+        <>
+          {iconName ? <Icon name={iconName} size={s.icon} color={v.text} strokeWidth={2.5} /> : icon}
+          <Text style={{ color: v.text, fontFamily: fonts.headingMedium, fontSize: s.font }}>{title}</Text>
+        </>
+      )}
+    </View>
+  );
+
+  const containerStyle: ViewStyle = {
+    borderRadius: borderRadius.md,
+    opacity: disabled ? 0.5 : 1,
+    alignSelf: fullWidth ? 'stretch' : undefined,
+    ...(isGhost ? {} : glow(v.glow, 0.4, 10)),
   };
 
-  const sizeStyles = {
-    sm: { paddingVertical: spacing.sm, paddingHorizontal: spacing.base, fontSize: fontSize.sm },
-    md: { paddingVertical: spacing.md, paddingHorizontal: spacing.xl, fontSize: fontSize.base },
-    lg: { paddingVertical: spacing.base, paddingHorizontal: spacing['2xl'], fontSize: fontSize.lg },
+  const padStyle: ViewStyle = {
+    paddingVertical: s.padV,
+    paddingHorizontal: s.padH,
+    borderRadius: borderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
   };
-
-  const { bg, text, glow } = variantColors[variant];
-  const sizeStyle = sizeStyles[size];
 
   return (
     <AnimatedTouchable
       onPress={handlePress}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
-      activeOpacity={0.8}
+      onPressIn={() => (scale.value = withSpring(0.95, spring.press))}
+      onPressOut={() => (scale.value = withSpring(1, spring.press))}
+      activeOpacity={0.85}
       disabled={disabled || loading}
-      style={[
-        animatedStyle,
-        {
-          backgroundColor: bg,
-          borderRadius: borderRadius.md,
-          paddingVertical: sizeStyle.paddingVertical,
-          paddingHorizontal: sizeStyle.paddingHorizontal,
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: spacing.sm,
-          opacity: disabled ? 0.5 : 1,
-          shadowColor: glow,
-          shadowOffset: { width: 0, height: 0 },
-          shadowOpacity: variant === 'ghost' ? 0 : 0.4,
-          shadowRadius: 8,
-          elevation: variant === 'ghost' ? 0 : 4,
-          borderWidth: variant === 'ghost' ? 1 : 0,
-          borderColor: variant === 'ghost' ? colors.primary : 'transparent',
-        },
-        style,
-      ]}
+      style={[animatedStyle, containerStyle, style]}
     >
-      {loading ? (
-        <ActivityIndicator color={text} size="small" />
+      {isGhost ? (
+        <View style={[padStyle, styles.ghost]}>{inner}</View>
       ) : (
-        <>
-          {icon}
-          <Text
-            style={{
-              color: text,
-              fontFamily: fonts.headingMedium,
-              fontSize: sizeStyle.fontSize,
-            }}
-          >
-            {title}
-          </Text>
-        </>
+        <LinearGradient
+          colors={gradientColors}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={padStyle}
+        >
+          {inner}
+        </LinearGradient>
       )}
     </AnimatedTouchable>
   );
 };
+
+const styles = StyleSheet.create({
+  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm },
+  ghost: { borderWidth: 1, borderColor: colors.primary, backgroundColor: 'rgba(0,240,255,0.06)' },
+});

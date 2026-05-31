@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useLocalSearchParams, router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { GlassCard } from '@/components/ui';
+import { GlassCard, Icon } from '@/components/ui';
 import { colors, fonts, fontSize, spacing, borderRadius } from '@/theme';
 import { marketAPI } from '@/services/api';
 import { calculateBuyCharges, calculateSellCharges, calculateBreakEven } from '@/constants/charges';
@@ -123,9 +123,12 @@ export default function StockDetailModal() {
               ₹{price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
             </Text>
             <View style={styles.changeRow}>
-              <Text style={[styles.changeText, { color: isPositive ? colors.success : colors.danger }]}>
-                {isPositive ? '▲' : '▼'} ₹{Math.abs(change).toFixed(2)} ({isPositive ? '+' : ''}{changePct.toFixed(2)}%)
-              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <Icon name={isPositive ? 'up' : 'down'} size={16} color={isPositive ? colors.success : colors.danger} strokeWidth={3} />
+                <Text style={[styles.changeText, { color: isPositive ? colors.success : colors.danger }]}>
+                  ₹{Math.abs(change).toFixed(2)} ({isPositive ? '+' : ''}{changePct.toFixed(2)}%)
+                </Text>
+              </View>
               <Text style={styles.prevClose}>Prev: ₹{priceData?.prev_close?.toFixed(2)}</Text>
             </View>
 
@@ -187,8 +190,11 @@ export default function StockDetailModal() {
             style={styles.chargesToggle}
             onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setShowCharges(!showCharges); }}
           >
-            <Text style={styles.sectionTitle}>💰 CHARGES CALCULATOR</Text>
-            <Text style={styles.toggleArrow}>{showCharges ? '▼' : '▶'}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
+              <Icon name="rupee" size={15} color={colors.warning} />
+              <Text style={styles.sectionTitle}>CHARGES CALCULATOR</Text>
+            </View>
+            <Icon name="chevronDown" size={16} color={colors.textMuted} style={{ transform: [{ rotate: showCharges ? '180deg' : '0deg' }] }} />
           </TouchableOpacity>
 
           {showCharges && price > 0 && (

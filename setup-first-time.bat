@@ -52,7 +52,6 @@ echo  Step 1: Installing Backend packages...
 echo ========================================
 cd /d "%~dp0backend"
 call npm install
-call npm install pino-pretty
 echo.
 
 echo ========================================
@@ -68,14 +67,15 @@ echo ========================================
 echo  Step 3: Installing Mobile App packages...
 echo ========================================
 cd /d "%~dp0mobile"
-call npm install
+call npm install --legacy-peer-deps
+call npx expo install expo-linking
 echo.
 
 echo ========================================
 echo  Step 4: Downloading AI Model (4GB)...
 echo  This may take 5-10 minutes...
 echo ========================================
-ollama pull mistral:7b
+ollama pull qwen2.5:7b
 echo.
 
 echo.
@@ -83,11 +83,10 @@ echo  ========================================
 echo    SETUP COMPLETE!
 echo  ========================================
 echo.
-echo  IMPORTANT: Before first run, edit this file:
-echo  backend\src\server.ts
+echo  IMPORTANT: Make sure backend\.env exists with your Supabase keys
+echo  (copy it from your other PC, or from .env.example).
 echo.
-echo  Find the "logger" section and change it to:
-echo    logger: true,
+echo  server.ts already uses logger: true - no edit needed.
 echo.
 echo  Then double-click START.BAT to run everything!
 echo  ========================================

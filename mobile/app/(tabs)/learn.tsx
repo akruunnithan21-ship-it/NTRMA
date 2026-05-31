@@ -1,164 +1,149 @@
 import React from 'react';
-import { ScrollView, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import Animated, { FadeInDown } from 'react-native-reanimated';
-import { GlassCard, NeonButton } from '@/components/ui';
+import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { router } from 'expo-router';
+import * as Haptics from 'expo-haptics';
+import { Screen, ScreenHeader, GlassCard, NeonButton, Icon, IconName } from '@/components/ui';
 import { colors, fonts, fontSize, spacing, borderRadius } from '@/theme';
+import { LESSONS, GLOSSARY } from '@/constants/lessons';
+import { useLearnStore } from '@/store/useLearnStore';
+
+const PATHS: { id: string; title: string; category: string; color: string }[] = [
+  { id: 'basics', title: 'Stock Market Basics', category: 'basics', color: colors.primary },
+  { id: 'technical', title: 'Technical Analysis 101', category: 'technical', color: colors.success },
+  { id: 'risk', title: 'Risk Management', category: 'risk', color: colors.danger },
+  { id: 'money', title: 'Money Mastery', category: 'money', color: colors.warning },
+];
+
+const ACHIEVEMENTS: { id: string; icon: IconName; title: string; need: number }[] = [
+  { id: 'first', icon: 'star', title: 'First Lesson', need: 1 },
+  { id: 'five', icon: 'book', title: 'Curious Mind', need: 5 },
+  { id: 'streak', icon: 'flame', title: 'On Fire', need: 8 },
+  { id: 'half', icon: 'target', title: 'Halfway', need: Math.ceil(LESSONS.length / 2) },
+  { id: 'brain', icon: 'ai', title: 'Scholar', need: LESSONS.length },
+  { id: 'pro', icon: 'trophy', title: 'Pro Investor', need: LESSONS.length },
+];
 
 export default function LearnScreen() {
+  const completed = useLearnStore((s) => s.completed);
+  const streak = useLearnStore((s) => s.streak);
+  const xp = useLearnStore((s) => s.getXP());
+  const level = useLearnStore((s) => s.getLevel());
+
+  const nextLesson = LESSONS.find((l) => !completed.includes(l.id)) ?? LESSONS[0];
+
+  const openLesson = (id: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    router.push({ pathname: '/(modals)/lesson', params: { id } });
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Header */}
-        <Animated.View entering={FadeInDown.duration(400)} style={styles.header}>
-          <Text style={styles.title}>Learn</Text>
-          <Text style={styles.subtitle}>Level up your financial IQ</Text>
-        </Animated.View>
+    <Screen header={<ScreenHeader title="Learn" subtitle="Level up your financial IQ" />}>
+      {/* Daily lesson */}
+      <GlassCard variant="highlighted" glowColor={colors.primary} delay={80}>
+        <View style={styles.badgeRow}>
+          <Icon name="book" size={14} color={colors.primary} />
+          <Text style={styles.badgeText}>{completed.includes(nextLesson.id) ? 'REVIEW' : "TODAY'S LESSON"}</Text>
+        </View>
+        <Text style={styles.lessonTitle}>{nextLesson.title}</Text>
+        <Text style={styles.lessonPreview} numberOfLines={3}>{nextLesson.content}</Text>
+        <NeonButton
+          title={`Start Lesson (${nextLesson.duration} min)`}
+          onPress={() => openLesson(nextLesson.id)}
+          variant="primary"
+          size="sm"
+          iconName="chevronRight"
+          style={{ marginTop: spacing.md }}
+        />
+      </GlassCard>
 
-        {/* Daily Lesson */}
-        <GlassCard variant="highlighted" glowColor={colors.primary} delay={100}>
-          <View style={styles.dailyBadge}>
-            <Text style={styles.dailyBadgeText}>📚 TODAY'S LESSON</Text>
-          </View>
-          <Text style={styles.lessonTitle}>What is a Stop Loss?</Text>
-          <Text style={styles.lessonPreview}>
-            A stop loss is like a safety net for your investments. It automatically sells your stock
-            when it falls to a certain price, protecting you from bigger losses...
-          </Text>
-          <NeonButton title="Start Lesson (3 min)" onPress={() => {}} variant="primary" size="sm" style={{ marginTop: spacing.md }} />
-        </GlassCard>
+      {/* Progress */}
+      <GlassCard delay={150}>
+        <Text style={styles.sectionTitle}>YOUR PROGRESS</Text>
+        <View style={styles.progressGrid}>
+          <Progress label="Lessons" value={`${completed.length}`} sub={`/${LESSONS.length}`} />
+          <Progress label="Streak" value={`${streak}`} sub="days" />
+          <Progress label="Level" value={level} sub="" />
+          <Progress label="XP" value={`${xp}`} sub="pts" />
+        </View>
+      </GlassCard>
 
-        {/* Progress */}
-        <GlassCard delay={200}>
-          <Text style={styles.sectionTitle}>YOUR PROGRESS</Text>
-          <View style={styles.progressGrid}>
-            <ProgressItem label="Lessons Done" value="7" total="50" />
-            <ProgressItem label="Current Streak" value="4" total="days" />
-            <ProgressItem label="Level" value="Beginner" total="" />
-            <ProgressItem label="XP" value="340" total="pts" />
-          </View>
-        </GlassCard>
+      {/* Learning paths */}
+      <GlassCard delay={220}>
+        <Text style={styles.sectionTitle}>LEARNING PATHS</Text>
+        <View style={styles.pathList}>
+          {PATHS.map((p) => {
+            const total = LESSONS.filter((l) => l.category === p.category).length;
+            const done = completed.filter((id) => LESSONS.find((l) => l.id === id)?.category === p.category).length;
+            const firstInPath = LESSONS.find((l) => l.category === p.category);
+            return (
+              <TouchableOpacity key={p.id} style={styles.pathItem} onPress={() => firstInPath && openLesson(firstInPath.id)} activeOpacity={0.8}>
+                <View style={[styles.pathDot, { backgroundColor: p.color }]} />
+                <View style={styles.pathContent}>
+                  <Text style={styles.pathTitle}>{p.title}</Text>
+                  <View style={styles.pathProgress}>
+                    <View style={styles.pathTrack}>
+                      <View style={[styles.pathFill, { width: `${total ? (done / total) * 100 : 0}%`, backgroundColor: p.color }]} />
+                    </View>
+                    <Text style={styles.pathCount}>{done}/{total}</Text>
+                  </View>
+                </View>
+                <Icon name="chevronRight" size={18} color={colors.textMuted} />
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </GlassCard>
 
-        {/* Learning Paths */}
-        <GlassCard delay={300}>
-          <Text style={styles.sectionTitle}>LEARNING PATHS</Text>
-          <View style={styles.pathList}>
-            <LearningPath
-              title="Stock Market Basics"
-              lessons={12}
-              completed={4}
-              color={colors.primary}
-            />
-            <LearningPath
-              title="Technical Analysis 101"
-              lessons={8}
-              completed={2}
-              color={colors.success}
-            />
-            <LearningPath
-              title="Mutual Funds & SIPs"
-              lessons={6}
-              completed={1}
-              color={colors.warning}
-            />
-            <LearningPath
-              title="Risk Management"
-              lessons={10}
-              completed={0}
-              color={colors.danger}
-            />
-            <LearningPath
-              title="US Market Investing"
-              lessons={8}
-              completed={0}
-              color="#A855F7"
-            />
-          </View>
-        </GlassCard>
+      {/* Achievements */}
+      <GlassCard delay={290}>
+        <Text style={styles.sectionTitle}>ACHIEVEMENTS</Text>
+        <View style={styles.achievementGrid}>
+          {ACHIEVEMENTS.map((a) => {
+            const unlocked = a.id === 'streak' ? streak >= a.need : completed.length >= a.need;
+            return (
+              <View key={a.id} style={[styles.achievement, !unlocked && styles.achievementLocked]}>
+                <Icon name={a.icon} size={22} color={unlocked ? colors.warning : colors.textMuted} />
+                <Text style={[styles.achievementTitle, !unlocked && { color: colors.textMuted }]}>{a.title}</Text>
+              </View>
+            );
+          })}
+        </View>
+      </GlassCard>
 
-        {/* Achievements */}
-        <GlassCard delay={400}>
-          <Text style={styles.sectionTitle}>ACHIEVEMENTS</Text>
-          <View style={styles.achievementGrid}>
-            <Achievement icon="🎯" title="First Trade" unlocked />
-            <Achievement icon="📊" title="Chart Reader" unlocked />
-            <Achievement icon="🔥" title="7-Day Streak" unlocked={false} />
-            <Achievement icon="💰" title="First Profit" unlocked={false} />
-            <Achievement icon="🧠" title="AI Master" unlocked={false} />
-            <Achievement icon="📈" title="Doubler" unlocked={false} />
-          </View>
-        </GlassCard>
-
-        {/* Glossary */}
-        <GlassCard delay={500}>
-          <Text style={styles.sectionTitle}>QUICK GLOSSARY</Text>
-          <View style={styles.glossaryList}>
-            <GlossaryItem term="P/E Ratio" definition="Price-to-Earnings ratio. Shows how much investors pay per rupee of earnings." />
-            <GlossaryItem term="SIP" definition="Systematic Investment Plan. Auto-invest a fixed amount monthly into mutual funds." />
-            <GlossaryItem term="RSI" definition="Relative Strength Index. Momentum indicator showing if a stock is overbought (>70) or oversold (<30)." />
-          </View>
-        </GlassCard>
-      </ScrollView>
-    </SafeAreaView>
+      {/* Glossary */}
+      <GlassCard delay={360}>
+        <Text style={styles.sectionTitle}>QUICK GLOSSARY</Text>
+        <View style={styles.glossaryList}>
+          {GLOSSARY.slice(0, 6).map((g) => (
+            <View key={g.term} style={styles.glossaryItem}>
+              <Text style={styles.glossaryTerm}>{g.term}</Text>
+              <Text style={styles.glossaryDef}>{g.definition}</Text>
+            </View>
+          ))}
+        </View>
+      </GlassCard>
+    </Screen>
   );
 }
 
-// Sub-components
-const ProgressItem = ({ label, value, total }: { label: string; value: string; total: string }) => (
+const Progress = ({ label, value, sub }: { label: string; value: string; sub: string }) => (
   <View style={styles.progressItem}>
     <Text style={styles.progressValue}>{value}</Text>
-    <Text style={styles.progressTotal}>{total}</Text>
+    <Text style={styles.progressSub}>{sub}</Text>
     <Text style={styles.progressLabel}>{label}</Text>
   </View>
 );
 
-const LearningPath = ({ title, lessons, completed, color }: { title: string; lessons: number; completed: number; color: string }) => (
-  <TouchableOpacity style={styles.pathItem}>
-    <View style={[styles.pathDot, { backgroundColor: color }]} />
-    <View style={styles.pathContent}>
-      <Text style={styles.pathTitle}>{title}</Text>
-      <View style={styles.pathProgress}>
-        <View style={styles.pathTrack}>
-          <View style={[styles.pathFill, { width: `${(completed / lessons) * 100}%`, backgroundColor: color }]} />
-        </View>
-        <Text style={styles.pathCount}>{completed}/{lessons}</Text>
-      </View>
-    </View>
-  </TouchableOpacity>
-);
-
-const Achievement = ({ icon, title, unlocked }: { icon: string; title: string; unlocked: boolean }) => (
-  <View style={[styles.achievementItem, !unlocked && styles.achievementLocked]}>
-    <Text style={styles.achievementIcon}>{icon}</Text>
-    <Text style={[styles.achievementTitle, !unlocked && styles.achievementTitleLocked]}>{title}</Text>
-  </View>
-);
-
-const GlossaryItem = ({ term, definition }: { term: string; definition: string }) => (
-  <View style={styles.glossaryItem}>
-    <Text style={styles.glossaryTerm}>{term}</Text>
-    <Text style={styles.glossaryDef}>{definition}</Text>
-  </View>
-);
-
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
-  scrollContent: { padding: spacing.base, paddingBottom: spacing['5xl'], gap: spacing.base },
-  header: { marginBottom: spacing.sm },
-  title: { fontFamily: fonts.heading, fontSize: fontSize.xl, color: colors.textPrimary },
-  subtitle: { fontFamily: fonts.body, fontSize: fontSize.md, color: colors.textSecondary },
-  sectionTitle: { fontFamily: fonts.headingMedium, fontSize: fontSize.sm, color: colors.textSecondary, letterSpacing: 1, marginBottom: spacing.md },
-  dailyBadge: { marginBottom: spacing.sm },
-  dailyBadgeText: { fontFamily: fonts.headingMedium, fontSize: fontSize.sm, color: colors.primary, letterSpacing: 0.5 },
+  badgeRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginBottom: spacing.sm },
+  badgeText: { fontFamily: fonts.headingMedium, fontSize: fontSize.sm, color: colors.primary, letterSpacing: 0.5 },
   lessonTitle: { fontFamily: fonts.heading, fontSize: fontSize.xl, color: colors.textPrimary, marginBottom: spacing.sm },
   lessonPreview: { fontFamily: fonts.body, fontSize: fontSize.md, color: colors.textSecondary, lineHeight: 22 },
+  sectionTitle: { fontFamily: fonts.headingMedium, fontSize: fontSize.sm, color: colors.textSecondary, letterSpacing: 1, marginBottom: spacing.md },
   progressGrid: { flexDirection: 'row', justifyContent: 'space-around' },
   progressItem: { alignItems: 'center', gap: 2 },
   progressValue: { fontFamily: fonts.monoBold, fontSize: fontSize.xl, color: colors.primary },
-  progressTotal: { fontFamily: fonts.body, fontSize: fontSize.xs, color: colors.textMuted },
+  progressSub: { fontFamily: fonts.body, fontSize: fontSize.xs, color: colors.textMuted },
   progressLabel: { fontFamily: fonts.body, fontSize: fontSize.xs, color: colors.textSecondary },
   pathList: { gap: spacing.md },
   pathItem: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
@@ -168,13 +153,11 @@ const styles = StyleSheet.create({
   pathProgress: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   pathTrack: { flex: 1, height: 4, backgroundColor: colors.surfaceHighlight, borderRadius: 2, overflow: 'hidden' },
   pathFill: { height: '100%', borderRadius: 2 },
-  pathCount: { fontFamily: fonts.mono, fontSize: fontSize.xs, color: colors.textMuted, width: 30 },
+  pathCount: { fontFamily: fonts.mono, fontSize: fontSize.xs, color: colors.textMuted, width: 32, textAlign: 'right' },
   achievementGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
-  achievementItem: { width: '30%', alignItems: 'center', backgroundColor: colors.surfaceHighlight, borderRadius: borderRadius.md, padding: spacing.md, gap: spacing.xs },
+  achievement: { width: '30%', alignItems: 'center', backgroundColor: colors.surfaceHighlight, borderRadius: borderRadius.md, padding: spacing.md, gap: spacing.xs },
   achievementLocked: { opacity: 0.4 },
-  achievementIcon: { fontSize: 24 },
   achievementTitle: { fontFamily: fonts.body, fontSize: fontSize.xs, color: colors.textPrimary, textAlign: 'center' },
-  achievementTitleLocked: { color: colors.textMuted },
   glossaryList: { gap: spacing.base },
   glossaryItem: { gap: spacing.xs, paddingBottom: spacing.sm, borderBottomWidth: 1, borderBottomColor: colors.border },
   glossaryTerm: { fontFamily: fonts.headingMedium, fontSize: fontSize.md, color: colors.primary },
