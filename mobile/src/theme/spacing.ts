@@ -78,3 +78,17 @@ export const shadows = {
     elevation: 6,
   },
 } as const;
+
+/**
+ * glow() — build a neon glow shadow for any color.
+ * @param color  hex color of the glow
+ * @param intensity 0..1 (maps to shadowOpacity)
+ * @param radius blur radius in px
+ */
+export const glow = (color: string, intensity = 0.45, radius = 14) => ({
+  shadowColor: color,
+  shadowOffset: { width: 0, height: 0 },
+  shadowOpacity: intensity,
+  shadowRadius: radius,
+  elevation: Math.round(radius / 2),
+});

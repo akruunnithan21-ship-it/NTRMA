@@ -1,87 +1,38 @@
 /**
  * WealthMaster API Service Layer
- * 
- * CONNECTION MODES:
- * 1. LOCAL (same WiFi): Uses your PC's local IP (e.g., 192.168.1.105:3001)
- * 2. TUNNEL (anywhere): Uses Cloudflare tunnel URL (e.g., https://wealthmaster-api.cfargotunnel.com)
- * 
- * HOW TO CONFIGURE:
- * Change the API_CONFIG below based on your setup.
+ * ---------------------------------------------------------------------------
+ * The base URL is no longer hard-coded. It is resolved at request time from
+ * `useConnectionStore`, which the user configures in the Settings screen and
+ * which is persisted with expo-secure-store. Change the backend address from
+ * inside the app — no code edits, no rebuild.
+ * ---------------------------------------------------------------------------
  */
 
 import axios from 'axios';
-
-// ═══════════════════════════════════════════════════════════════
-// 🔧 CONFIGURATION — CHANGE THESE VALUES FOR YOUR SETUP
-// ═══════════════════════════════════════════════════════════════
-
-const API_CONFIG = {
-  // Your PC's local IP address (find with 'ipconfig' in Command Prompt)
-  // Look for "IPv4 Address" under your WiFi adapter
-  LOCAL_IP: '192.168.1.100',
-
-  // Cloudflare tunnel URL (set this after running setup-tunnel.bat)
-  // Leave empty string if you haven't set up tunnel yet
-  TUNNEL_URL: '',
-
-  // Which mode to use:
-  // 'local'  = connect via WiFi (phone + PC must be on same network)
-  // 'tunnel' = connect via internet (works from anywhere)
-  // 'auto'   = use tunnel if available, fallback to local
-  MODE: 'auto' as 'local' | 'tunnel' | 'auto',
-};
-
-// ═══════════════════════════════════════════════════════════════
-// DO NOT EDIT BELOW THIS LINE (unless you know what you're doing)
-// ═══════════════════════════════════════════════════════════════
-
-function getBaseURL(): string {
-  const { MODE, LOCAL_IP, TUNNEL_URL } = API_CONFIG;
-
-  if (MODE === 'tunnel' && TUNNEL_URL) {
-    return `${TUNNEL_URL}/api`;
-  }
-
-  if (MODE === 'auto' && TUNNEL_URL) {
-    return `${TUNNEL_URL}/api`;
-  }
-
-  // Local mode or fallback
-  return `http://${LOCAL_IP}:3001/api`;
-}
-
-const BASE_URL = getBaseURL();
+import { useConnectionStore } from '@/store/useConnectionStore';
 
 const api = axios.create({
-  baseURL: BASE_URL,
-  timeout: 15000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  timeout: 20000,
+  headers: { 'Content-Type': 'application/json' },
 });
 
-// Add auth token to requests
+// Resolve the base URL freshly on every request from the connection store.
 api.interceptors.request.use((config) => {
-  // TODO: Get token from secure store
+  config.baseURL = useConnectionStore.getState().getApiURL();
   return config;
 });
 
-// Handle errors globally with retry logic
+// Reflect connectivity into the connection store so the UI can show status.
 api.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    // If tunnel fails, try local as fallback
-    if (API_CONFIG.MODE === 'auto' && API_CONFIG.TUNNEL_URL && error.code === 'ECONNREFUSED') {
-      const localURL = `http://${API_CONFIG.LOCAL_IP}:3001/api`;
-      const originalRequest = error.config;
-      originalRequest.baseURL = localURL;
-      return axios(originalRequest);
+  (response) => {
+    const { status, setStatus } = useConnectionStore.getState();
+    if (status !== 'online') setStatus('online');
+    return response;
+  },
+  (error) => {
+    if (error?.code === 'ERR_NETWORK' || error?.message === 'Network Error' || !error?.response) {
+      useConnectionStore.getState().setStatus('offline');
     }
-
-    if (error.response?.status === 401) {
-      // TODO: Navigate to login
-    }
-
     return Promise.reject(error);
   }
 );
@@ -121,14 +72,23 @@ export const marketAPI = {
 };
 
 // ===== AI =====
+// AI calls can be slow on a cold cache (yfinance + technical/fundamental +
+// LLM explanation), so they get longer per-request timeouts than the default.
 export const aiAPI = {
-  getTodaySignal: () => api.get('/ai/signal/today'),
-  getActiveSignals: () => api.get('/ai/signals/active'),
-  getSignalHistory: () => api.get('/ai/signals/history'),
-  askAI: (question: string) => api.post('/ai/ask', { question }),
+  getTodaySignal: (strategy?: string) =>
+    api.get('/ai/signal/today', { params: { strategy }, timeout: 90000 }),
+  getActiveSignals: () => api.get('/ai/signals/active', { timeout: 90000 }),
+  getSignalHistory: () => api.get('/ai/signals/history', { timeout: 90000 }),
+  scanWatchlist: (symbols: { symbol: string; exchange: string }[], strategy: string) =>
+    api.post('/ai/signals/scan', { symbols, strategy }, { timeout: 120000 }),
+  askAI: (question: string, context?: Record<string, unknown>) =>
+    api.post('/ai/ask', { question, context }, { timeout: 120000 }),
   setStrategy: (mode: string) => api.post('/ai/strategy', { mode }),
-  getStatus: () => api.get('/ai/status'),
-  analyzeStock: (symbol: string) => api.post(`/ai/analyze/${symbol}`),
+  getStatus: () => api.get('/ai/status', { timeout: 10000 }),
+  analyzeStock: (symbol: string, exchange = 'NSE') =>
+    api.get(`/ai/analyze/${symbol}`, { params: { exchange }, timeout: 70000 }),
+  getMarketMood: () => api.get('/ai/market-mood', { timeout: 35000 }),
+  getStockNews: (symbol: string) => api.get(`/ai/news/${symbol}`, { timeout: 35000 }),
 };
 
 // ===== PORTFOLIO =====
@@ -142,11 +102,9 @@ export const portfolioAPI = {
 };
 
 // ===== UTILITY =====
-export const getConnectionInfo = () => ({
-  mode: API_CONFIG.MODE,
-  baseURL: BASE_URL,
-  localIP: API_CONFIG.LOCAL_IP,
-  tunnelURL: API_CONFIG.TUNNEL_URL || 'not configured',
-});
+export const getConnectionInfo = () => {
+  const s = useConnectionStore.getState();
+  return { mode: s.mode, baseURL: s.getApiURL(), localIP: s.localIP, tunnelURL: s.tunnelURL || 'not configured' };
+};
 
 export default api;

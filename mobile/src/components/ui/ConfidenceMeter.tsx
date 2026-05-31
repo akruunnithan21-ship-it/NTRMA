@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -41,6 +42,12 @@ export const ConfidenceMeter: React.FC<ConfidenceMeterProps> = ({
     return colors.confidenceLow;
   };
 
+  const getGradient = (): readonly [string, string] => {
+    if (value >= 70) return colors.gradientGreen;
+    if (value >= 40) return colors.gradientGold;
+    return colors.gradientDanger;
+  };
+
   const barColor = getColor();
 
   const heights = { sm: 4, md: 6, lg: 10 };
@@ -59,14 +66,20 @@ export const ConfidenceMeter: React.FC<ConfidenceMeterProps> = ({
             animatedBarStyle,
             {
               height: barHeight,
-              backgroundColor: barColor,
               shadowColor: barColor,
               shadowOffset: { width: 0, height: 0 },
-              shadowOpacity: 0.6,
+              shadowOpacity: 0.7,
               shadowRadius: 6,
             },
           ]}
-        />
+        >
+          <LinearGradient
+            colors={getGradient()}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={[StyleSheet.absoluteFill, { borderRadius: borderRadius.full }]}
+          />
+        </Animated.View>
       </View>
     </View>
   );

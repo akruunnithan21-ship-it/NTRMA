@@ -13,6 +13,7 @@ import * as LocalAuthentication from 'expo-local-authentication';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { colors, fonts, fontSize, spacing, borderRadius } from '@/theme';
+import { Icon, GradientText } from '@/components/ui';
 
 const PIN_LENGTH = 4;
 
@@ -94,8 +95,10 @@ export default function LoginScreen() {
     <View style={styles.container}>
       {/* Logo / Title */}
       <Animated.View entering={FadeInDown.duration(600)} style={styles.logoArea}>
-        <Text style={styles.logo}>⬡</Text>
-        <Text style={styles.appName}>WealthMaster</Text>
+        <View style={styles.logoBadge}>
+          <Icon name="activity" size={34} color={colors.primary} strokeWidth={2.5} />
+        </View>
+        <GradientText style={styles.appName} gradient={colors.gradientCyan}>WealthMaster</GradientText>
         <Text style={styles.tagline}>Enter your PIN</Text>
       </Animated.View>
 
@@ -134,7 +137,7 @@ export default function LoginScreen() {
                     style={styles.numpadKey}
                     onPress={handleBiometric}
                   >
-                    <Text style={styles.numpadBio}>🔐</Text>
+                    <Icon name="biometric" size={26} color={colors.primary} />
                   </TouchableOpacity>
                 );
               }
@@ -146,7 +149,7 @@ export default function LoginScreen() {
                     onPress={handleDelete}
                     onLongPress={() => { setPin(''); }}
                   >
-                    <Text style={styles.numpadDel}>⌫</Text>
+                    <Icon name="backspace" size={24} color={colors.textSecondary} />
                   </TouchableOpacity>
                 );
               }
@@ -180,10 +183,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: spacing['3xl'],
   },
-  logo: {
-    fontSize: 48,
-    color: colors.primary,
-    marginBottom: spacing.sm,
+  logoBadge: {
+    width: 84,
+    height: 84,
+    borderRadius: 42,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.primaryGlow,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    marginBottom: spacing.base,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 18,
+    elevation: 8,
   },
   appName: {
     fontFamily: fonts.heading,
